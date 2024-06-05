@@ -142,7 +142,7 @@
     function getLatLongFromAddress($address){
         $formattedAddress = str_replace(' ', '+', $address);
     
-        $apiKey = 'AIzaSyB6yIQr2JGOVXaDifaI_cE96odWcoNXsPA';
+        $apiKey = 'your_api_key';
         $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$formattedAddress}&key={$apiKey}";
         
         $responseJson = file_get_contents($url);
