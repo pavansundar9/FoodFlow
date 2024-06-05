@@ -1,0 +1,647 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #17272b;
+    width: 100%;
+    padding: 0 10px;
+}
+nav > img {
+    height: 100px;
+}
+nav > ul {
+    display: flex;
+    list-style: none;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    cursor: pointer;
+    margin-right: 20px;
+}
+nav > ul > li > a {
+    color: aliceblue;
+    text-decoration: none;
+    transition: .4s ease-in-out;
+}
+.user {
+    display: flex;
+    align-items: center;
+}
+.user > a {
+    object-fit: cover;
+}
+.user-icon{
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: antiquewhite;
+    img{
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+    }
+}
+#other-menu {
+    display: none; 
+    position: absolute;
+    top: 90px; 
+    right: 40px; 
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+#other-menu > li {
+    list-style: none;
+}
+#other-menu > li > a {
+    color: black;
+    text-decoration: none;
+    display: block;
+    padding: 5px 0;
+}
+.main-menu-other {
+    display: none;
+}
+.user-details {
+    text-align: center;
+    color: gold;
+    padding: 20px;
+    height: fit-content;
+    border: 1px solid antiquewhite;
+    margin-right: -20px;
+    border-radius: 20px;
+}
+.hero-section{
+    display: flex;
+    /* justify-content: center; */
+    /* width: 88%; */
+    height: 90vh;
+    /* background-color:aqua; */
+}
+.cta{
+    display: flex;
+    justify-content: center;
+    /* align-items: center; */
+    flex-direction: column;
+    
+    padding: 20px;
+    width: 50%;
+    height: 90vh;
+    h2{
+        font-size: 2rem;
+    }
+    a{
+        color: #17272b;
+        cursor: pointer;
+        animation: 1s  ease-in-out hover;
+        padding: 10px;
+        width: 150px;
+        text-align: center;
+        border: 1px solid transparent;
+        transition: all 0.3s ease-in-out;
+        &:hover {
+            text-decoration: underline;
+            
+            border: 1px solid #17272b;
+            border-radius: 20px;
+            /* filter: brightness(80%); */
+        }
+    }
+    /* a:hover{
+        text-decoration: underline;
+    } */
+}
+.cta-items{
+    display: flex;
+    align-items: center;
+    /* gap: 0px; */
+    margin-top: 30px;
+}
+.cta-button{
+    width: 150px;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #17272b;
+    border-radius: 20px;
+}
+.image-side{
+    margin-top: 50px;
+    background-size: cover;
+    overflow: hidden;
+    transition: all .3s ease-in-out;
+}
+.background{
+    position: absolute;
+}
+.doner-receiver{
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+
+    img{
+        height: 400px;
+    }
+}
+.receiver-img{
+    display: none;
+    transition: opacity 1s ease-in;
+}
+.donar-img{
+    /* margin-left: 150px; */
+    /* background-color: aliceblue; */
+    margin-right: 0;
+    float: right;
+    right: 0;
+    transition: margin-left 1s ease;
+}
+.doner-img-hover {
+    margin-left: 0;
+}
+.cta-button:hover + .receiver-img {
+    display: block;
+    opacity: 1;
+    transition: all .3s ease-in-out;
+}
+.cta-button:hover{
+    background-color: #17272b;
+    color: white;
+}
+.fewStories {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    font-size: 2rem;
+    height: 90vh;
+}
+
+.fewStories .heading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    height: 100%;
+    background-color: #17272b;
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    overflow: visible;
+    /* clip-path: polygon(0% 0%, 100% 0%, 50% 100%, 0% 100%); */
+    /* position: relative; */
+    /* z-index: 2; */
+    margin-top: 120px;
+    border-radius: 30px;
+}
+
+
+
+.fewStories .heading h3 {
+    margin: 0 0 1rem 0;
+    font-size: 2rem;
+    font-weight: bold;
+    overflow: visible;
+}
+
+.fewStories .heading p {
+    font-size: 1.5rem;
+    line-height: 1.5;
+    /* position: absolute; */
+    z-index: 2;
+    top: 55%;
+}
+.storiesContainer {
+    width: 100%;
+    height: 100vh;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    /* overflow-x: hidden; */
+    width: 100%;
+}
+
+
+.outer {
+    width: calc(90% + 10%);
+    height: 700px;
+    border-radius: 20px;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    text-align: center;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+}
+.outer::-webkit-scrollbar {
+    display: none;
+}
+.card {
+    flex: 0 0 auto;
+    margin: 20px;
+    width: 400px;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    font-size: 50px;
+    color: white;
+    border-radius: 30px;
+    overflow: hidden; 
+    scroll-snap-align: center;
+    transition:  all .6s ease-in-out;
+}
+
+.card img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 70%;
+    object-fit: cover;
+    border-radius: 30px;
+    mask-image: linear-gradient(white, transparent);
+    transition: mask-image 0.3s ease-in-out;
+}
+
+.card .info {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    font-size: 20px;
+    color: #17272b;
+    margin: 10px;
+    margin-left: 0;
+    text-align: left;
+    max-height: 200px;
+    /* overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; */
+    inset: auto auto 0px 30px;
+    white-space: normal;
+    transition: bottom 0.3s ease-in-out, top 0.3s ease-in-out;
+}
+
+.card:hover .info {
+    max-height: 1000px;
+    bottom: 10px;
+    transition: max-height 0.8s ease-in-out, top 0.8s ease-in-out;
+}
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    margin-top: 100px;
+    padding: 20px;
+}
+.step {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+.step-icon {
+    flex-shrink: 0;
+    margin-right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #17272b;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.step-content {
+    overflow: hidden;
+}
+.step h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+.step p {
+    margin: 0;
+}
+.fetching,.receiver-type{
+    opacity: .6;
+    font-size: 14px;
+    margin-left: 20px;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+.receiver-type{
+    margin: 0;
+}
+/* food-donation-search.php */
+.location-form{
+    display: flex;
+    margin: 20px;
+    padding: 10px;
+    gap: 10px;
+    button{
+        border: 1px solid #17272b;
+        border-radius: 10px;
+        padding: 10px;
+        margin: 10px;
+    }
+}
+.input{
+    padding: 10px;
+    color: #333;
+    transition: border-color 250ms;
+    border-radius: 10px;
+    border: 1px solid #17272b;
+    background-color: transparent;
+    width: 100%;
+    &:focus {
+      outline: none;
+      border-bottom-color: #777;
+    }
+  
+    /* &::placeholder {
+      color: transparent;
+    } */
+    
+   
+    &::-webkit-contacts-auto-fill-button {
+      visibility: hidden;
+      pointer-events: none;
+      position: absolute;
+      
+      color: rgba(8, 8, 8, 0);
+    }
+}
+.search-submit{
+    background-color: #17272b;
+    color: #fff;
+    width: 150px;
+}
+
+.error{
+    color: red;
+    text-align: center;
+    font-size: 14px;
+    line-height: 16px;
+}
+.showMenu{
+    display: none;
+    &:active{
+        display: block;
+    }
+}
+.profile-pic{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+/* .the-details{
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+
+} */
+.user-details1{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    
+}
+.foodbank-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    margin-left: 30px;
+    /* width: 700px; */
+    width: 85%;
+    height: auto;
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    /* background-color: #9f3030; */
+    align-items: center;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -ms-border-radius: 5px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -ms-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -o-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+.foodbank-icon {
+    width: 130px;
+    height: 130px;
+    margin-right: 20px;
+    border-radius: 20px;
+    max-width: 200px; 
+    max-height: 200px;
+}
+
+.foodbank-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* align-items: center; */
+    width: 100%;
+    height: 80%;
+    /* background-color: aqua; */
+}
+.foodbank-name {
+    margin: 0;
+    font-size: 24px;
+    min-height: 20px;
+}
+
+.foodbank-address {
+    margin: 0;
+    font-size: .9rem;
+    width: 60%;
+}
+
+.foodbank-phone {
+    margin: 0;
+    font-size: 16px;
+}
+.foodbank-distance{
+    position: absolute;
+    margin-bottom: -130px;
+    border: 1px #ccc solid;
+    border-radius: 10px;
+    background-color: #ddd;
+    padding: 5px;
+    width: fit-content;
+    /* margin-top: 20px; */
+}
+
+.container{
+    margin-left: 0;
+    height: auto;
+    margin-top: 100px;
+}
+/* label{
+    font-family: "Poppins",sans-serif;
+    font-size: 20px;
+} */
+.conatin{
+    margin-top: 100px;
+    margin-left: 50px;
+    width: 100%;
+}
+/* label,
+textarea {
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+textarea {
+    padding: 10px;
+    max-width: 100%;
+    line-height: 1.5;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-shadow: 1px 1px 1px #999;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+} */
+.donate-btn{
+    align-self: flex-end;
+    width: 100px;
+    height: 50px;
+    background-color: #17272b;
+    color: aliceblue;
+    border: none;
+    border-radius: 10px;
+    &:hover{
+        border-radius: 20px;
+        background-color: #c8ed6c;
+        color: #17272b;
+        transition: all .3s ease-in-out;
+    }
+}
+  
+@media only screen and (max-width: 768px) {
+    nav {
+        width: 100%;
+        /* flex-wrap: wrap; */
+        align-items: center;
+        margin: 0;
+    }
+    nav > img {
+        height: 60px;
+    }
+    .main-menu {
+        display: none;
+    }
+    .main-menu-other {
+        display: block;
+    }
+    nav > ul {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        padding: 0;
+    }
+    nav > ul > li {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    nav > ul > li > a {
+        margin-right: 0;
+    }
+    .user{
+        margin-top: 15px;
+        align-self: flex-end;
+        width: auto;
+    }
+    .user-details {
+        padding: 10px;
+        margin-right: -10px;
+        /* float: right; */
+        border-radius: 10px;
+        
+    }
+    #other-menu {
+        top: 60px;
+        right: 20px;
+    }
+    .hero-section{
+        flex-direction: column;
+        height: auto;
+    }
+    .cta{
+        width: 100%;
+        /* margin: 10px; */
+        /* margin: 0; */
+        height: auto;
+        /* background-color: #c8ed6c; */
+        h2{
+            margin: 10px;
+        }
+    }
+    .image-side{
+        width: 400px;
+        display: none;
+    }
+    .fewStories{
+        /* background-color: bisque; */
+        flex-direction: column;
+        height: auto;
+        margin-top: 0;
+    }
+    .fewStories .heading{
+        width: 90%;
+        align-self: center;
+        height: auto;
+        margin: 0;
+    }
+    .storiesContainer{
+        height: auto;
+    }
+    .card{
+        width: 350px;
+    }
+    .foodbank-container{
+        flex-direction: column;
+        width: 80%;
+        flex-wrap: wrap;
+    }
+    .foodbank-name{
+        font-size: 18px;
+        margin-top: 20px;
+    }
+    .foodbank-distance{
+        margin-bottom: -170px;
+    }
+    .req{
+        margin-top: 20px;
+    }
+}
