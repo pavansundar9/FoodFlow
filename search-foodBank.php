@@ -1,6 +1,5 @@
 <?php
 session_start();
-echo "<script>console.log(" . json_encode($_SESSION) . ");</script>";
 // Initialize variables
 $error = $name = "";
 
@@ -30,8 +29,11 @@ if (isset($_SESSION['type'])) {
         $table = 'fooddoners';
 
         // Query to fetch all records from the fooddoners table
-        $sql = "SELECT * FROM $table";
-        $result = mysqli_query($conn, $sql);
+        $sql = "SELECT * FROM $table WHERE email = ?";
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $doner_email);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
 
         // Fetch the first row from the result set
         if ($row = mysqli_fetch_assoc($result)) {
@@ -52,107 +54,13 @@ if (isset($_SESSION['type'])) {
     echo "<script>window.location.href='login.php';</script>";
     exit();
 }
-function get_IP_address()
-{
-    foreach (
-        array(
-            'HTTP_CLIENT_IP',
-            'HTTP_X_FORWARDED_FOR',
-            'HTTP_X_FORWARDED',
-            'HTTP_X_CLUSTER_CLIENT_IP',
-            'HTTP_FORWARDED_FOR',
-            'HTTP_FORWARDED',
-            'REMOTE_ADDR'
-        ) as $key
-    ) {
-        if (array_key_exists($key, $_SERVER) === true) {
-            foreach (explode(',', $_SERVER[$key]) as $IPaddress) {
-                $IPaddress = trim($IPaddress);
 
-                if (
-                    filter_var(
-                        $IPaddress,
-                        FILTER_VALIDATE_IP,
-                        FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
-                    )
-                    !== false
-                ) {
-
-                    return $IPaddress;
-                }
-            }
-        }
-    }
-    return null;
-}
-
-function searchFoodbank($address)
-{
-    global $conn;
-
-    // Define search radius (in kilometers)
-    $radius = 10;
-
-    // Geocode the user's address
-    $user_coordinates = getLatLongFromAddress($address);
-    // echo $user_coordinates;
-    // Check if geocoding was successful
-    if ($user_coordinates !== false) {
-        $user_latitude = $user_coordinates['latitude'];
-        $user_longitude = $user_coordinates['longitude'];
-
-        // SQL query to select all food banks
-        $sql = "SELECT * FROM foodreceivers";
-
-        $result = mysqli_query($conn, $sql);
-
-        // Check for errors in query execution
-        if (!$result) {
-            die('Error in SQL query: ' . mysqli_error($conn));
-        }
-
-        // Array to store food bank details
-        $foodbanks = array();
-        // print_r($foodbanks);
-        // Fetch results and store in array
-        while ($row = mysqli_fetch_assoc($result)) {
-            // Geocode each food bank's address
-            $foodbank_coordinates = getLatLongFromAddress($row['address']);
-            if ($foodbank_coordinates !== false) {
-                $foodbank_latitude = $foodbank_coordinates['latitude'];
-                $foodbank_longitude = $foodbank_coordinates['longitude'];
-
-                // Calculate distance between user and food bank
-                $distance = calculateDistance($user_latitude, $user_longitude, $foodbank_latitude, $foodbank_longitude);
-
-                // Add food bank details along with distance to the array
-                $row['distance'] = $distance;
-                $foodbanks[] = $row;
-            }
-        }
-
-        // Sort food banks by distance
-        usort($foodbanks, function ($a, $b) {
-            return $a['distance'] - $b['distance'];
-        });
-
-        // Filter food banks within the search radius
-        $filtered_foodbanks = array_filter($foodbanks, function ($bank) use ($radius) {
-            return $bank['distance'] < $radius;
-        });
-
-        // Return filtered food banks
-        return $filtered_foodbanks;
-    } else {
-        // Geocoding failed
-        return false;
-    }
-}
-
+// Unified function for getting coordinates from address
 function getLatLongFromAddress($address)
 {
+    if (empty($address)) return false;
+    
     $formattedAddress = str_replace(' ', '+', $address);
-
     $apiKey = 'AIzaSyB6yIQr2JGOVXaDifaI_cE96odWcoNXsPA';
     $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$formattedAddress}&key={$apiKey}";
 
@@ -165,46 +73,25 @@ function getLatLongFromAddress($address)
         $latitude = $geometry['location']['lat'];
         $longitude = $geometry['location']['lng'];
 
-        // Loop through address components to find the city
+        // Loop through address components to find the city and state
         $city = '';
+        $state = '';
         foreach ($response['results'][0]['address_components'] as $component) {
             if (in_array('locality', $component['types'])) {
                 $city = $component['long_name'];
-                break;
+            }
+            if (in_array('administrative_area_level_1', $component['types'])) {
+                $state = $component['long_name'];
             }
         }
 
-        return array('latitude' => $latitude, 'longitude' => $longitude, 'city' => $city);
+        return array('latitude' => $latitude, 'longitude' => $longitude, 'city' => $city, 'state' => $state);
     } else {
         return false; // No results found
     }
 }
 
-function getAddressFromLatLong($lat, $long)
-{
-    // Make request to Nominatim
-    $apiKey = 'AIzaSyB6yIQr2JGOVXaDifaI_cE96odWcoNXsPA';
-    $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng={$lat},{$long}&key={$apiKey}";
-    $response = file_get_contents($url);
-
-    // Handle response
-    if ($response !== false) {
-        $result = json_decode($response);
-
-        if ($result && isset($result->results[0]->formatted_address)) {
-            $address = $result->results[0]->formatted_address;
-            // echo "<br>Address: $address";
-            return $address;
-        } else {
-            echo "Unable to retrieve address.";
-            // return null;
-        }
-    } else {
-        echo "Failed to fetch data.";
-        // return null;
-    }
-}
-
+// Calculate distance between two sets of coordinates
 function calculateDistance($lat1, $lon1, $lat2, $lon2)
 {
     // Radius of the Earth in kilometers
@@ -228,6 +115,99 @@ function calculateDistance($lat1, $lon1, $lat2, $lon2)
     return $distance;
 }
 
+// Search for nearby food banks based on coordinates
+function searchFoodbank($address)
+{
+    global $conn;
+
+    // Increase search radius (in kilometers) to include more results in the state
+    $radius = 100; // Increased from 10 to 100 to get more results in the state
+
+    // Geocode the user's address
+    $user_coordinates = getLatLongFromAddress($address);
+    
+    // Check if geocoding was successful
+    if ($user_coordinates !== false) {
+        $user_latitude = $user_coordinates['latitude'];
+        $user_longitude = $user_coordinates['longitude'];
+        $user_state = $user_coordinates['state'];
+
+        // SQL query to select all food banks
+        $sql = "SELECT * FROM foodreceivers";
+        $result = mysqli_query($conn, $sql);
+
+        // Check for errors in query execution
+        if (!$result) {
+            die('Error in SQL query: ' . mysqli_error($conn));
+        }
+
+        // Array to store food bank details
+        $foodbanks = array();
+        
+        // Fetch results and store in array
+        while ($row = mysqli_fetch_assoc($result)) {
+            // Geocode each food bank's address
+            $foodbank_coordinates = getLatLongFromAddress($row['address']);
+            if ($foodbank_coordinates !== false) {
+                $foodbank_latitude = $foodbank_coordinates['latitude'];
+                $foodbank_longitude = $foodbank_coordinates['longitude'];
+                $foodbank_state = $foodbank_coordinates['state'];
+
+                // Calculate distance between user and food bank
+                $distance = calculateDistance($user_latitude, $user_longitude, $foodbank_latitude, $foodbank_longitude);
+
+                // Only include food banks in the same state and within the radius
+                if ($foodbank_state == $user_state && $distance <= $radius) {
+                    // Add food bank details along with distance to the array
+                    $row['distance'] = $distance;
+                    $foodbanks[] = $row;
+                }
+            }
+        }
+
+        // Sort food banks by distance (shortest first)
+        usort($foodbanks, function ($a, $b) {
+            return $a['distance'] - $b['distance'];
+        });
+
+        // Return the food banks
+        return array('foodbanks' => $foodbanks, 'state' => $user_state);
+    } else {
+        // Geocoding failed
+        return false;
+    }
+}
+
+// Process form submission
+$foodbanks = array();
+$state = "";
+$city = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST['search-foodBank'])) {
+        $address = $_POST['addressInput'];
+        
+        // Validate address input
+        if (empty($address)) {
+            $error = "Please enter an address";
+        } else {
+            $coordinates = getLatLongFromAddress($address);
+            
+            if ($coordinates !== false) {
+                $city = $coordinates['city'];
+                $state = $coordinates['state'];
+                // Fetch food banks near the provided coordinates
+                $results = searchFoodbank($address);
+                if ($results !== false) {
+                    $foodbanks = $results['foodbanks'];
+                    $state = $results['state'];
+                }
+            } else {
+                $error = "Failed to fetch coordinates. Please try again.";
+            }
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -245,8 +225,6 @@ function calculateDistance($lat1, $lon1, $lat2, $lon2)
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Paprika&family=Tenor+Sans&display=swap" rel="stylesheet">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.5.2/css/all.css">
-
-
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -293,155 +271,71 @@ function calculateDistance($lat1, $lon1, $lat2, $lon2)
         <?php if ($error) {
             echo "<p class='error'>" . $error . "</p>";
         } ?>
-        <form class="location-form" method="POST" action="">
+        <form class="location-form" method="POST" action="" id="searchForm">
             <input class="input" type="text" id="addressInput" name="addressInput" placeholder="Enter your(pick-up) address">
-            <button type="submit" id="getLocationBtn" name="getLocationBtn" class="location-button">
+            <button type="button" id="getLocationBtn" class="location-button">
                 <i class="fa fa-location-dot" style="font-size: 30px"></i>
             </button>
-            <button type="submit" name="search-foodBank" class="search-submit">Search</button>
+            <button type="submit" name="search-foodBank" class="search-submit" id="searchBtn">Search</button>
         </form>
     </section>
+    <!-- <section>
+        <p id="location-display" style="margin-top: 10px; font-weight: bold;">Getting your location...</p>
+    </section> -->
     <section class="the-details">
         <!-- Search Results -->
         <section class="results" id="searchResults">
             <!-- Dynamic content will be added here -->
+            <div id="loadingIndicator" style="text-align: center; display: none;">
+                <p>Searching for food receivers near you...</p>
+                <!-- You can add a loading spinner here if desired -->
+            </div>
+            <div id="jsResults">
+                <!-- JavaScript will populate this area -->
+            </div>
+            
             <?php
-            if ($_SERVER["REQUEST_METHOD"] == "POST") {
-                if (isset($_POST['search-foodBank'])) {
-                    $address = $_POST['addressInput'];
-                    // echo $address;
-                    // Validate address input
-                    if (empty($address)) {
-                        $error = "Please enter an address";
-                        echo "<p class='error'>Please enter an address</p>";
-                    } else {
-                        // echo "<br>address is not empty!!";
-                        $coordinates = getLatLongFromAddress($address);
-                        // echo $coordinates;
-                        if ($coordinates !== false) {
-                            $latitude = $coordinates['latitude'];
-                            $longitude = $coordinates['longitude'];
-                            $city = $coordinates['city'];
-                            // $output = "Latitude: $latitude, Longitude: $longitude, City: $city";
-                            echo "<p class='fetching'>Fetching food receivers in <u>" . $city . "</u> near you.";
-                            // Fetch food banks near the provided coordinates
-                            $foodbanks = searchFoodbank($address);
-                            // echo $address;
-                            if (!empty($foodbanks)) {
-                                // echo "<p class='fetching'>Fetching food banks in <u>".$city."</u> near you.</p>";
-                                // Sort food banks by distance
-                                usort($foodbanks, function ($a, $b) {
-                                    return $a['distance'] - $b['distance'];
-                                });
-                                // Display the list of food banks
-                                echo "<ul>";
-                                foreach ($foodbanks as $bank) {
-                                    // Calculate distance between user and food bank
-                                    $distance = number_format($bank['distance'], 2); // Format distance to two decimal places
-                                    // Display each food bank as a container
-                                    echo "<div class='foodbank-container'>
-                                            <img class='foodbank-icon' src='{$bank['image_path']}'>
-                                            <div class='foodbank-details'>
-                                                <h3 class='foodbank-name'>{$bank['name']}</h3>
-                                                <p class='receiver-type'>{$bank['receiver_type']}</p>
-                                                <p class='foodbank-address'>{$bank['address']}</p>
-                                                <p class='foodbank-phone'>{$bank['c_number']}</p>
-                                                <p class='foodbank-distance'>Distance: {$distance} km</p> 
-                                                <form method='POST' action='donationform.php' style='align-self: flex-end;'>
-                                                    <input type='hidden' name='receiver_name' value='{$bank['name']}'>
-                                                    <input type='hidden' name='receiver_email' value='{$bank['email']}'>
-                                                    <input type='hidden' name='receiver_type' value='{$bank['receiver_type']}'>
-                                                    <input type='hidden' name='receiver_address' value='{$bank['address']}'>
-                                                    <input type='hidden' name='receiver_phone' value='{$bank['c_number']}'>
-                                                    <input type='hidden' name='receiver_distance' value='{$bank['distance']}'>
-                                                    <button type='submit' class='donate-btn'>Donate</button>
-                                                </form>
-                                            </div>
-                                        </div>";
-                                }
-                                echo "</ul>";
-                            } else {
-                                echo "<p>No food banks found near your location.</p>";
-                            }
-                        } else {
-                            $error = "Failed to fetch coordinates. Please try again.";
-                        }
-                    }
-                } else if (isset($_POST['getLocationBtn'])) {
-                    // Retrieve the user's location
-                    $ip = get_IP_address();
-                    $json = @file_get_contents("http://ip-api.com/json/$ip");
-                    $data = json_decode($json);
+            if (!empty($foodbanks)) {
+                echo "<p class='fetching'>Food receivers in <u>" . $state . "</u> near you, sorted by distance:</p>";
+                echo "<ul>";
+                foreach ($foodbanks as $bank) {
+                    // Calculate distance between user and food bank
+                    $distance = number_format($bank['distance'], 2); // Format distance to two decimal places
 
-                    if (@$data->status == "fail") {
-                        $error = "Could not retrieve your geolocation.";
-                        die("Could not retrieve your geolocation.");
-                    } else {
-                        $city = $data->city;
-                        $latitude = $data->lat;
-                        $longitude = $data->lon;
-                        // echo $city.", ".$latitude.", ".$longitude;
-                        // Search for food banks near the obtained coordinates
-                        $address = getAddressFromLatLong($latitude, $longitude);
-                        // echo $address;
-                        if ($address) {
-                            $foodbanks = searchFoodbank($address);
+                    // Use a default image if the image_path is empty or not found
+                    $image_path = !empty($bank['image_path']) ? $bank['image_path'] : 'uploads/food-bank-logo.png';
 
-                            if (!empty($foodbanks)) {
-                                // Sort food banks by distance
-                                usort($foodbanks, function ($a, $b) {
-                                    return $a['distance'] - $b['distance'];
-                                });
-
-                                echo "<p class='fetching'>Fetching food banks in <u>" . $city . "</u> near you.</p>";
-
-                                // Display the list of food banks
-                                echo "<ul>";
-                                foreach ($foodbanks as $bank) {
-                                    // Calculate distance between user and food bank
-                                    $distance = number_format($bank['distance'], 2); // Format distance to two decimal places
-                                    // Display each food bank as a container
-                                    echo "<div class='foodbank-container'>
-                                        <img class='foodbank-icon' src='{$bank['image_path']}'>
-                                        <div class='foodbank-details'>
-                                            <div style='display: flex; justify-content: space-between;'>
-                                                <h3 class='foodbank-name'>{$bank['name']}</h3>";
-                                    echo ($bank['req_bool'] == 'yes') ? "<span class='req'>{$bank['daily_count']}/{$bank['req_people']}</span>" : ""; // Conditionally display req_bool
-                                    echo "
-                                            </div>
-                                            <p class='receiver-type'>{$bank['receiver_type']}</p>
-                                            <p class='foodbank-address'>{$bank['address']}</p>
-                                            <p class='foodbank-phone'>{$bank['c_number']}</p>
-                                            <p class='foodbank-distance'>{$distance} km away</p>
-                                            <form method='POST' action='donationform.php' style='align-self: flex-end;'>
-                                                <input type='hidden' name='receiver_name' value='{$bank['name']}'>
-                                                <input type='hidden' name='receiver_email' value='{$bank['email']}'>
-                                                <input type='hidden' name='receiver_type' value='{$bank['receiver_type']}'>
-                                                <input type='hidden' name='receiver_address' value='{$bank['address']}'>
-                                                <input type='hidden' name='receiver_phone' value='{$bank['c_number']}'>
-                                                <input type='hidden' name='receiver_distance' value='{$bank['distance']}'>
-                                                <button type='submit' class='donate-btn'>Donate</button>
-                                            </form>
-                                        </div>
-                                    </div>";
-                                }
-                                echo "</ul>";
-                            } else {
-                                echo "<p>No food banks found near your location.</p>";
-                            }
-                        } else {
-                            $error = "Failed to fetch coordinates. Please try again.";
-                        }
-                        // Display the fetched city for confirmation
-                        // echo "<p class='fetching'>Fetching food receivers in <u>".$city."</u> near you.";
-                    }
+                    // Display each food bank as a container
+                    echo "<div class='foodbank-container'>
+                            <img class='foodbank-icon' src='{$image_path}' alt='Food Bank Icon'>
+                            <div class='foodbank-details'>
+                                <div style='display: flex; justify-content: space-between;'>
+                                    <h3 class='foodbank-name'>{$bank['name']}</h3>";
+                    echo ($bank['req_bool'] == 'yes') ? "<span class='req'>{$bank['daily_count']}/{$bank['req_people']}</span>" : ""; // Conditionally display req_bool
+                    echo "
+                                </div>
+                                <p class='foodbank-address'>{$bank['address']}</p>
+                                <p class='foodbank-phone'>{$bank['c_number']}</p>
+                                <p class='foodbank-distance'>{$distance} km away</p>
+                                <form method='POST' action='donationform.php' style='align-self: flex-end;'>
+                                    <input type='hidden' name='receiver_name' value='{$bank['name']}'>
+                                    <input type='hidden' name='receiver_email' value='{$bank['email']}'>
+                                    <input type='hidden' name='receiver_address' value='{$bank['address']}'>
+                                    <input type='hidden' name='receiver_phone' value='{$bank['c_number']}'>
+                                    <input type='hidden' name='receiver_distance' value='{$bank['distance']}'>
+                                    <button type='submit' class='donate-btn'>Donate</button>
+                                </form>
+                            </div>
+                        </div>";
                 }
+                echo "</ul>";
+            } else if ($_SERVER["REQUEST_METHOD"] == "POST") {
+                echo "<p>No food banks found near your location.</p>";
             }
             ?>
         </section>
         <section class="user-details1">
-            <!-- <center><h2 class="user-details-title">User Details</h2></center> -->
-
+            <!-- User details section -->
         </section>
     </section>
     <script>
@@ -462,30 +356,138 @@ function calculateDistance($lat1, $lon1, $lat2, $lon2)
                 menu.style.display = 'none';
             }
         });
-        async function getCurrentPosition() {
-            return new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject);
-            });
-        }
-        async function fetchUserLocation() {
+
+        // Function to fetch foodbanks based on address
+        async function fetchFoodbanks(address) {
+            document.getElementById('loadingIndicator').style.display = 'block'; // Show the loading indicator
+
+            const formData = new FormData();
+            formData.append('addressInput', address);
+            formData.append('search-foodBank', 'true');
+            console.log("Fetching foodbanks for address:", address);
+            console.log("Form data:", formData);
+
             try {
-                // Get the user's current location using Geolocation API
-                const position = await getCurrentPosition();
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData
+                });
 
-                // Fetch city data from BigDataCloud API
-                const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}`);
-                const data = await response.json();
-                const city = data.city;
+                console.log("Response status:", response.status);
 
-                console.log(city);
+                console.log("Response URL:", response.url);
+                console.log("Response headers:", response.headers);
+                if (response.ok) {
+                    const html = await response.text(); // Get the response as HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    console.log("Parsed HTML:", doc);
+                    // Extract the search results from the response
+                    const results = doc.querySelector('#searchResults').innerHTML;
+
+                    // Update the search results dynamically
+                    document.getElementById('searchResults').innerHTML = results;
+
+                    // Hide the loading indicator
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                } else {
+                    throw new Error('Failed to fetch food receivers.');
+                }
             } catch (error) {
-                console.error('Error fetching user location:', error);
+                console.error('Error fetching foodbanks:', error);
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('jsResults').innerHTML = '<p>Error fetching food receivers. Please try again.</p>';
             }
         }
+
+        // Get location automatically on page load
+        function getUserLocation() {
+            // const locationDisplay = document.getElementById('location-display');
+            const addressInput = document.getElementById('addressInput');
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        // Reverse geocode to get address
+                        fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=AIzaSyB6yIQr2JGOVXaDifaI_cE96odWcoNXsPA`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.results && data.results.length > 0) {
+                                    const address = data.results[0].formatted_address;
+                                    addressInput.value = address;
+                                    // locationDisplay.innerText = "Location detected: " + address;
+                                    
+                                    // Automatically search for foodbanks using the detected address
+                                    fetchFoodbanks(address);
+                                } else {
+                                    // locationDisplay.innerText = "Couldn't get your address. Please enter it manually.";
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Error getting address:", error);
+                                // locationDisplay.innerText = "Error getting your address. Please enter it manually.";
+                            });
+                    },
+                    function(error) {
+                        console.error("Geolocation error:", error);
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                alert("User denied the request for Geolocation.");
+                                // locationDisplay.innerText = "Location access denied. Please enter your address manually.";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                alert("Location information is unavailable.");
+                                // locationDisplay.innerText = "Location information unavailable. Please enter your address manually.";
+                                break;
+                            case error.TIMEOUT:
+                                alert("The request to get user location timed out.");
+                                // locationDisplay.innerText = "Location request timed out. Please enter your address manually.";
+                                break;
+                            default:
+                                alert("An unknown error occurred.");
+                                // locationDisplay.innerText = "Unknown error getting location. Please enter your address manually.";
+                        }
+                    }
+                );
+            } else {
+                // Browser doesn't support Geolocation
+                alert("Geolocation is not supported by this browser.");
+                // locationDisplay.innerText = "Geolocation not supported in your browser. Please enter your address manually.";
+            }
+        }
+
+        // Run immediately on page load
+        window.onload = function() {
+            // Check if we already have search results displayed (page was reloaded after search)
+            if (document.querySelector('.foodbank-container')) {
+                // document.getElementById('location-display').innerText = 
+                //     "Location found. Showing food receivers near you sorted by distance.";
+                // No need to call getUserLocation again, as we already have results
+                alert("Location found. Showing food receivers near you sorted by distance.");
+            } else {
+                getUserLocation();
+            }
+        };
+
+        // Also attach to button for manual refresh
+        document.getElementById('getLocationBtn').addEventListener('click', function() {
+            // document.getElementById('location-display').innerText = "Getting your location...";
+            getUserLocation();
+        });
+
+        // Handle form submission via JavaScript
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            const addressInput = document.getElementById('addressInput');
+            if (addressInput.value.trim() === '') {
+                e.preventDefault();
+                alert("Please enter an address before searching.");
+                // document.getElementById('location-display').innerText = "Please enter an address before searching.";
+            }
+        });
     </script>
-
 </body>
-
 </html>

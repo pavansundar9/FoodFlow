@@ -4,7 +4,8 @@ if (isset($_SESSION['email'])) {
     $email = $_SESSION['email'];
     $type = $_SESSION['type'];
 }
-//Database connection
+
+// Database connection
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -14,28 +15,37 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-if(isset($_SESSION['type'])){
+$image_path = $receiver_name = $c_number = $address = $receiver_type = $req_bool = $accept = $req_people = $count = '';
+
+if (isset($_SESSION['type'])) {
     $sql = "SELECT * FROM foodreceivers";
     $result = mysqli_query($conn, $sql);
-    $row = mysqli_fetch_assoc($result);
+    
+    if ($result && mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
 
-    $image_path = $row['image_path'];
-    $receiver_name = $row['name'];
-    $c_number = $row['c_number'];
-    $address = $row['address'];
-    $receiver_type = $row['receiver_type'];
-    $req_bool = $row['req_bool'];
-    $accept = $row['accept'];
-    $req_people = $row['req_people'];
-    $count = $row['daily_count'];
+        // Set variables only if there is data
+        $receiver_name = $row['name'];
+        $receiver_type = $row['receiver_type'];
+        $c_number = $row['c_number'];
+        $address = $row['address'];
+        $image_path = $row['image_path'];
+        $count = $row['daily_count'];
+        $req_bool = $row['req_bool'];
+        $accept = $row['accept'];
+        $req_people = $row['req_people'];
+    } else {
+        echo '<script>console.log("No records found.");</script>';
+    }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>FoodFlow-Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @keyframes underlineAnimation {
@@ -57,6 +67,16 @@ if(isset($_SESSION['type'])){
 
         .underline-animation:hover {
             background-size: 100% 2px;
+        }
+
+        .no-records {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Full viewport height */
+            text-align: center;
+            font-size: 1.5rem;
+            color: red;
         }
     </style>
 </head>

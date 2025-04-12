@@ -177,8 +177,8 @@
                     1
                 </div>
                 <div class="step-content">
-                    <h4>Find What You Need</h4>
-                    <p>Search our database for the information or service you need.</p>
+                    <h4>Sign Up or Log In</h4>
+                    <p>Create an account as a donor or receiver, or log in to access your personalized dashboard.</p>
                 </div>
             </div>
             <!-- Step 2 -->
@@ -187,8 +187,8 @@
                     2
                 </div>
                 <div class="step-content">
-                    <h4>Submit Your Request</h4>
-                    <p>Use our simple form to submit your request for service.</p>
+                    <h4>List or Search Donations</h4>
+                    <p>Donors can list surplus food for donation, while receivers can search for available donations or nearby food banks.</p>
                 </div>
             </div>
             <!-- Step 3 -->
@@ -197,8 +197,8 @@
                     3
                 </div>
                 <div class="step-content">
-                    <h4>Get It Done</h4>
-                    <p>Our team will process your request and deliver the service promptly.</p>
+                    <h4>Connect and Donate</h4>
+                    <p>Donors and receivers connect to arrange the donation, ensuring food reaches those in need efficiently.</p>
                 </div>
             </div>
         </div>
