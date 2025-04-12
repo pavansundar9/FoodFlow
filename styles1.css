@@ -1,0 +1,304 @@
+.fetching,.receiver-type{
+    opacity: .6;
+    font-size: 14px;
+    margin-left: 20px;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+.receiver-type{
+    margin: 0;
+}
+/* food-donation-search.php */
+.location-form{
+    display: flex;
+    margin: 20px;
+    padding: 10px;
+    gap: 10px;
+    button{
+        border: 1px solid #17272b;
+        border-radius: 10px;
+        padding: 10px;
+        margin: 10px;
+    }
+}
+.input{
+    padding: 10px;
+    color: #333;
+    transition: border-color 250ms;
+    border-radius: 10px;
+    border: 1px solid #17272b;
+    background-color: transparent;
+    width: 100%;
+    &:focus {
+      outline: none;
+      border-bottom-color: #777;
+    }
+  
+    /* &::placeholder {
+      color: transparent;
+    } */
+    
+   
+    &::-webkit-contacts-auto-fill-button {
+      visibility: hidden;
+      pointer-events: none;
+      position: absolute;
+      
+      color: rgba(8, 8, 8, 0);
+    }
+}
+.search-submit{
+    background-color: #17272b;
+    color: #fff;
+    width: 150px;
+}
+
+.error{
+    color: red;
+    text-align: center;
+    font-size: 14px;
+    line-height: 16px;
+}
+.showMenu{
+    display: none;
+    &:active{
+        display: block;
+    }
+}
+.profile-pic{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+/* .the-details{
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+
+} */
+.user-details1{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    
+}
+.foodbank-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    margin-left: 30px;
+    /* width: 700px; */
+    width: 85%;
+    height: auto;
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    /* background-color: #9f3030; */
+    align-items: center;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -ms-border-radius: 5px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -ms-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -o-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+.foodbank-icon {
+    width: 130px;
+    height: 130px;
+    margin-right: 20px;
+    border-radius: 20px;
+    max-width: 200px; 
+    max-height: 200px;
+}
+
+.foodbank-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* align-items: center; */
+    width: 100%;
+    height: 80%;
+    /* background-color: aqua; */
+}
+.foodbank-name {
+    margin: 0;
+    font-size: 24px;
+    min-height: 20px;
+}
+
+.foodbank-address {
+    margin: 0;
+    font-size: .9rem;
+    width: 60%;
+}
+
+.foodbank-phone {
+    margin: 0;
+    font-size: 16px;
+}
+.foodbank-distance{
+    position: absolute;
+    margin-bottom: -130px;
+    border: 1px #ccc solid;
+    border-radius: 10px;
+    background-color: #ddd;
+    padding: 5px;
+    width: fit-content;
+    /* margin-top: 20px; */
+}
+
+.container{
+    margin-left: 0;
+    height: auto;
+    margin-top: 100px;
+}
+/* label{
+    font-family: "Poppins",sans-serif;
+    font-size: 20px;
+} */
+.conatin{
+    margin-top: 100px;
+    margin-left: 50px;
+    width: 100%;
+}
+/* label,
+textarea {
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+textarea {
+    padding: 10px;
+    max-width: 100%;
+    line-height: 1.5;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-shadow: 1px 1px 1px #999;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+} */
+.donate-btn{
+    align-self: flex-end;
+    width: 100px;
+    height: 50px;
+    background-color: #17272b;
+    color: aliceblue;
+    border: none;
+    border-radius: 10px;
+    &:hover{
+        border-radius: 20px;
+        background-color: #c8ed6c;
+        color: #17272b;
+        transition: all .3s ease-in-out;
+    }
+}
+  
+@media only screen and (max-width: 768px) {
+    nav {
+        width: 100%;
+        /* flex-wrap: wrap; */
+        align-items: center;
+        margin: 0;
+    }
+    nav > img {
+        height: 60px;
+    }
+    .main-menu {
+        display: none;
+    }
+    .main-menu-other {
+        display: block;
+    }
+    nav > ul {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        padding: 0;
+    }
+    nav > ul > li {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    nav > ul > li > a {
+        margin-right: 0;
+    }
+    .user{
+        margin-top: 15px;
+        align-self: flex-end;
+        width: auto;
+    }
+    .user-details {
+        padding: 10px;
+        margin-right: -10px;
+        /* float: right; */
+        border-radius: 10px;
+        
+    }
+    #other-menu {
+        top: 60px;
+        right: 20px;
+    }
+    .hero-section{
+        flex-direction: column;
+        height: auto;
+    }
+    .cta{
+        width: 100%;
+        /* margin: 10px; */
+        /* margin: 0; */
+        height: auto;
+        /* background-color: #c8ed6c; */
+        h2{
+            margin: 10px;
+        }
+    }
+    .image-side{
+        width: 400px;
+        display: none;
+    }
+    .fewStories{
+        /* background-color: bisque; */
+        flex-direction: column;
+        height: auto;
+        margin-top: 0;
+    }
+    .fewStories .heading{
+        width: 90%;
+        align-self: center;
+        height: auto;
+        margin: 0;
+    }
+    .storiesContainer{
+        height: auto;
+    }
+    .card{
+        width: 350px;
+    }
+    .foodbank-container{
+        flex-direction: column;
+        width: 80%;
+        flex-wrap: wrap;
+    }
+    .foodbank-name{
+        font-size: 18px;
+        margin-top: 20px;
+    }
+    .foodbank-distance{
+        margin-bottom: -170px;
+    }
+    .req{
+        margin-top: 20px;
+    }
+}
