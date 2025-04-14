@@ -14,28 +14,45 @@
     // if session type is created then session emil is crearted
     if(isset($_SESSION['type'])) {
         $type = $_SESSION['type'];
+        // Debug session data
+        echo "<script>console.log('Session type: " . $type . "');</script>";
+        echo "<script>console.log('Session email: " . $_SESSION['email'] . "');</script>";
         if ($type == 'doner') {
             $doner_email = $_SESSION['email'];
             $doner_name = $_SESSION['name'];
             $doner_c_number = $_SESSION['c_number'];
             $table = 'fooddoners';
             // $location = 'doner_extra_info.php';
+            $sql = "SELECT * FROM $table WHERE email = '$doner_email'";
         } else {
             $receiver_email = $_SESSION['email'];
             $receiver_name = $_SESSION['name'];
             $receiver_c_number = $_SESSION['c_number'];
             $table = 'foodreceivers';
+
+            $sql = "SELECT * FROM $table WHERE email = '$receiver_email'";
             // $location = 'receiver_extra_info.php';
         }
 
-        $sql ="SELECT * FROM $table";
-        $result = mysqli_query($conn,$sql);
-        $row = mysqli_fetch_assoc($result);
-        $image_path = $row['image_path'];
-    }
+        // $sql ="SELECT * FROM $table";
+        $result = mysqli_query($conn, $sql);
+        echo "<script>console.log('SQL Query: " . $sql . "');</script>";
 
-    
-    
+        if ($result && mysqli_num_rows($result) > 0) {
+            $row = mysqli_fetch_assoc($result);
+            
+            if (!empty($row['image_path']) && file_exists($row['image_path'])) {
+                $image_path = $row['image_path'];
+            } else {
+                $image_path = "images/user.png";
+            }
+        }else {
+            echo "<script>console.log('No results found or query failed');</script>";
+            if (!$result) {
+                echo "<script>console.log('MySQL Error: " . mysqli_error($conn) . "');</script>";
+            }
+        }
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -60,7 +77,34 @@
             <li class="main-menu"><a href="#services">Services</a></li>
             <li class="main-menu"><a href="#about">About Us</a></li>
             <li class="main-menu"><a href="#contact">Contact</a></li>
-            <li class="user"><p class="user-details"><?php if(isset($_SESSION['email'])) echo $doner_email; else echo "Guest&nbsp;";  ?></p><a href="javascript:void(0)"><div class="user-icon"><img src="<?php if(isset($image_path)) echo $image_path; else echo "images/user.png" ?>" alt="user icon" id="user-icon"></div></a></li>
+            <li class="user">
+                <p class="user-details">
+                    <?php 
+                        if(isset($_SESSION['email'])) 
+                            echo $doner_email; 
+                        else echo "Guest&nbsp;";  
+                    ?>
+                </p>
+                <a href="javascript:void(0)">
+                    <div class="user-icon">
+                    <?php 
+                        if(isset($image_path)) {
+                            echo "<script>console.log('Using image path: " . $image_path . "');</script>";
+                        } else {
+                            echo "<script>console.log('Using default image path');</script>";
+                        }
+                    ?>
+                    <img src="
+                        <?php 
+                            if(isset($image_path)) 
+                                echo $image_path; 
+                            else 
+                                echo "images/user.png"; 
+                        ?>" 
+                    alt="user icon" id="user-icon">
+                    </div>
+                </a>
+            </li>
         </ul>
         <div id="other-menu">
             <li class="main-menu-other"><a href="#home">Home</a></li>

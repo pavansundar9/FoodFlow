@@ -324,7 +324,7 @@ nav>ul>li>a:hover::after {
     justify-content: center;
     align-items: center;
     width: 50%;
-    height: 115%;
+    height: 100%;
     background-color: var(--primary-color);
     color: white;
     padding: 2rem;
@@ -1116,6 +1116,7 @@ textarea.input {
     }
 
     .image-side {
+        display: none;
         margin-top: 0;
         height: 400px;
     }
@@ -1156,6 +1157,7 @@ textarea.input {
     }
 
     .image-side {
+        display: none;
         height: 300px;
     }
 
@@ -1297,248 +1299,176 @@ textarea.input {
 
 .foodbank-container {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 20px;
-    margin-left: 30px;
-    /* width: 700px; */
-    width: 85%;
-    height: auto;
-    padding: 20px;
-    font-size: 14px;
-    line-height: 1.5;
-    color: #333;
-    /* background-color: #9f3030; */
-    align-items: center;
-    border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
-    -ms-border-radius: 5px;
-    border-radius: 5px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-    -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-    -moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-    -ms-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-    -o-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-    -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-    -moz-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    margin: 30px auto;
+    width: 90%;
+    max-width: 900px;
+    padding: 25px;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.foodbank-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
 .foodbank-icon {
-    width: 130px;
-    height: 130px;
-    margin-right: 20px;
-    border-radius: 20px;
-    max-width: 200px;
-    max-height: 200px;
+    width: 120px;
+    height: 120px;
+    margin-right: 25px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .foodbank-details {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    /* align-items: center; */
+    justify-content: space-between;
     width: 100%;
-    height: 80%;
-    /* background-color: aqua; */
+    position: relative;
+}
+
+.foodbank-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
 }
 
 .foodbank-name {
     margin: 0;
-    font-size: 24px;
-    min-height: 20px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.req {
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
 }
 
 .foodbank-address {
-    margin: 0;
-    font-size: .9rem;
-    width: 60%;
+    margin: 0 0 10px 0;
+    font-size: 0.95rem;
+    color: #555;
+    max-width: 80%;
+    line-height: 1.4;
 }
 
 .foodbank-phone {
-    margin: 0;
-    font-size: 16px;
+    margin: 0 0 15px 0;
+    font-size: 0.95rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+}
+
+.foodbank-phone::before {
+    content: '📞';
+    margin-right: 8px;
+    font-size: 1rem;
 }
 
 .foodbank-distance {
     position: absolute;
-    margin-bottom: -130px;
-    border: 1px #ccc solid;
-    border-radius: 10px;
-    background-color: #ddd;
-    padding: 5px;
-    width: fit-content;
-    /* margin-top: 20px; */
+    top: 0;
+    right: 0;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.container {
-    margin-left: 0;
-    height: auto;
-    margin-top: 100px;
-}
-
-/* label{
-    font-family: "Poppins",sans-serif;
-    font-size: 20px;
-} */
-.conatin {
-    margin-top: 100px;
-    margin-left: 50px;
-    width: 100%;
-}
-
-/* label,
-textarea {
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-}
-
-textarea {
-    padding: 10px;
-    max-width: 100%;
-    line-height: 1.5;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    box-shadow: 1px 1px 1px #999;
-}
-
-label {
-    display: block;
-    margin-bottom: 10px;
-} */
 .donate-btn {
     align-self: flex-end;
-    width: 100px;
-    height: 50px;
-    background-color: #17272b;
-    color: aliceblue;
+    padding: 10px 20px;
+    min-width: 120px;
+    background-color: var(--primary-color);
+    color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 
-    &:hover {
-        border-radius: 20px;
-        background-color: #c8ed6c;
-        color: #17272b;
-        transition: all .3s ease-in-out;
-    }
+.donate-btn:hover {
+    background-color: var(--secondary-color);
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 @media only screen and (max-width: 768px) {
-    nav {
-        width: 100%;
-        /* flex-wrap: wrap; */
-        align-items: center;
-        margin: 0;
-    }
-
-    nav>img {
-        height: 60px;
-    }
-
-    .main-menu {
-        display: none;
-    }
-
-    .main-menu-other {
-        display: block;
-    }
-
-    nav>ul {
-        flex-direction: column;
-        align-items: flex-start;
-        width: 100%;
-        padding: 0;
-    }
-
-    nav>ul>li {
-        width: 100%;
-        text-align: center;
-        margin-bottom: 10px;
-    }
-
-    nav>ul>li>a {
-        margin-right: 0;
-    }
-
-    .user {
-        margin-top: 15px;
-        align-self: flex-end;
-        width: auto;
-    }
-
-    .user-details {
-        padding: 10px;
-        margin-right: -10px;
-        /* float: right; */
-        border-radius: 10px;
-
-    }
-
-    #other-menu {
-        top: 60px;
-        right: 20px;
-    }
-
-    .hero-section {
-        flex-direction: column;
-        height: auto;
-    }
-
-    .cta {
-        width: 100%;
-        /* margin: 10px; */
-        /* margin: 0; */
-        height: auto;
-
-        /* background-color: #c8ed6c; */
-        h2 {
-            margin: 10px;
-        }
-    }
-
-    .image-side {
-        width: 400px;
-        display: none;
-    }
-
-    .fewStories {
-        /* background-color: bisque; */
-        flex-direction: column;
-        height: auto;
-        margin-top: 0;
-    }
-
-    .fewStories .heading {
-        width: 90%;
-        align-self: center;
-        height: auto;
-        margin: 0;
-    }
-
-    .storiesContainer {
-        height: auto;
-    }
-
-    .card {
-        width: 350px;
-    }
-
     .foodbank-container {
         flex-direction: column;
-        width: 80%;
-        flex-wrap: wrap;
+        align-items: center;
+        padding: 20px;
+        width: 85%;
     }
-
+    
+    .foodbank-icon {
+        width: 100px;
+        height: 100px;
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .foodbank-details {
+        text-align: center;
+    }
+    
+    .foodbank-header {
+        flex-direction: column;
+        margin-bottom: 15px;
+    }
+    
     .foodbank-name {
-        font-size: 18px;
-        margin-top: 20px;
+        margin-bottom: 8px;
     }
-
-    .foodbank-distance {
-        margin-bottom: -170px;
-    }
-
+    
     .req {
-        margin-top: 20px;
+        align-self: center;
+        margin-bottom: 8px;
+    }
+    
+    .foodbank-address {
+        max-width: 100%;
+        margin: 0 auto 10px auto;
+    }
+    
+    .foodbank-distance {
+        position: static;
+        margin: 10px auto;
+        display: inline-block;
+    }
+    
+    .donate-btn {
+        align-self: center;
+        width: 100%;
+        max-width: 200px;
+        margin-top: 15px;
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    .foodbank-container {
+        width: 90%;
+        padding: 15px;
+    }
+    
+    .foodbank-name {
+        font-size: 1.3rem;
     }
 }

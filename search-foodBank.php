@@ -37,7 +37,9 @@ if (isset($_SESSION['type'])) {
 
         // Fetch the first row from the result set
         if ($row = mysqli_fetch_assoc($result)) {
+            $default_image = 'uploads/food-bank-logo.png';
             $image_path = $row['image_path'];
+            $final_image = (!empty($image_path) && file_exists($image_path)) ? $image_path : $default_image;
         } else {
             // Handle case where no rows are found
             $error = "No records found.";
@@ -237,15 +239,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <li class="main-menu"><a href="#about">About Us</a></li>
             <li class="main-menu"><a href="#contact">Contact</a></li>
             <li class="user">
-                <p class="user-details"><?php if (isset($_SESSION['email'])) echo $doner_email;
-                                        else echo "Guest&nbsp;";  ?></p><a href="javascript:void(0)">
+                <p class="user-details">
+                    <?php 
+                        if (isset($_SESSION['email'])) 
+                            echo $doner_email;
+                        else 
+                            echo "Guest&nbsp;";  
+                    ?>
+                </p>
+                <a href="javascript:void(0)">
                     <div class="user-icon">
                         <img src="
                             <?php
-                            if (isset($image_path))
+                            if (isset($image_path) && !empty($image_path) && file_exists($image_path)) {
                                 echo $image_path;
-                            else
-                                echo "images/user.png" ?>"
+                            } else {
+                                    echo "images/user.png";
+                            } 
+                            ?>"
                             alt="user icon" id="user-icon">
                     </div>
                 </a>
@@ -257,13 +268,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <li class="main-menu-other"><a href="#about">About Us</a></li>
             <li class="main-menu-other"><a href="#contact">Contact</a></li>
             <hr class="main-menu-other">
-            <?php
-            if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
-                echo '<li><a href="profile.php">Profile</a></li>';
-                echo '<li><a href="logout.php">Logout</a></li>';
-            } else {
-                echo '<li><a href="login.php">Login/Register</a></li>';
-            }
+            <?php 
+                if(isset($_SESSION['logged-in'])){
+                    echo '<li><a href="profile.php">Profile</a></li>';
+                    echo '<li><a href="logout.php">Logout</a></li>';
+                }
+                else
+                    echo '<li><a href="login.php">Login/Register</a></li>';
             ?>
         </div>
     </nav>
@@ -303,8 +314,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $distance = number_format($bank['distance'], 2); // Format distance to two decimal places
 
                     // Use a default image if the image_path is empty or not found
-                    $image_path = !empty($bank['image_path']) ? $bank['image_path'] : 'uploads/food-bank-logo.png';
-
+                    $default_image = 'uploads/food-bank-logo.png';
+                    $image_path = (!empty($bank['image_path']) && file_exists($bank['image_path'])) ? $bank['image_path'] : $default_image;
+                    
                     // Display each food bank as a container
                     echo "<div class='foodbank-container'>
                             <img class='foodbank-icon' src='{$image_path}' alt='Food Bank Icon'>
@@ -320,15 +332,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <form method='POST' action='donationform.php' style='align-self: flex-end;'>
                                     <input type='hidden' name='receiver_name' value='{$bank['name']}'>
                                     <input type='hidden' name='receiver_email' value='{$bank['email']}'>
-                                    <input type='hidden' name='receiver_address' value='{$bank['address']}'>
-                                    <input type='hidden' name='receiver_phone' value='{$bank['c_number']}'>
-                                    <input type='hidden' name='receiver_distance' value='{$bank['distance']}'>
+                                    <input type='hidden' name='receiver_address' class='foodbank-address' value='{$bank['address']}'>
+                                    <input type='hidden' name='receiver_phone' class='foodbank-phone' value='{$bank['c_number']}'>
+                                    <input type='hidden' name='receiver_distance' class='foodbank-distance' value='{$bank['distance']}'>
                                     <button type='submit' class='donate-btn'>Donate</button>
                                 </form>
                             </div>
                         </div>";
                 }
                 echo "</ul>";
+                $_SESSION['receiver_email'] = $bank['email'];
             } else if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo "<p>No food banks found near your location.</p>";
             }
