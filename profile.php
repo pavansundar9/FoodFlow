@@ -15,7 +15,7 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-$image_path = $name = $c_number = $address = $user_type = $daily_count = $req_bool = $accept = $req_people = $doner_type = $typical_donation = $delivery = '';
+$image_path = $name = $phone = $address = $user_type = $daily_count = $req_bool = $accept = $req_people = $doner_type = $typical_donation = $delivery = '';
 $default_image = 'uploads/food-bank-logo.png';
 
 if (isset($_SESSION['type'])) {
@@ -33,7 +33,7 @@ if (isset($_SESSION['type'])) {
 
         // Common fields
         $name = $row['name'];
-        $c_number = $row['c_number'];
+        $phone = $row['phone'];
         $address = $row['address'];
         $image_path = $row['image_path'];
         $user_type = $_SESSION['type'];
@@ -108,6 +108,7 @@ if (isset($_SESSION['type'])) {
         body {
             overflow: hidden; /* Prevent double scrollbars */
             height: 100vh;
+            width: 100vw;
         }
 
         .progress-bar {
@@ -126,29 +127,75 @@ if (isset($_SESSION['type'])) {
             transition: width 0.3s ease;
         }
 
-        /* Custom scrollbar for main content */
-        /* .scrollable-content::-webkit-scrollbar {
-            width: 8px;
+        /* Mobile nav menu */
+        .mobile-menu {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
         }
-
-        .scrollable-content::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
+        
+        .mobile-menu.open {
+            transform: translateX(0);
         }
-
-        .scrollable-content::-webkit-scrollbar-thumb {
-            background: #c8ed6c;
-            border-radius: 4px;
+        
+        @media (min-width: 1024px) {
+            #mobile-menu-button {
+                display: none;
+            }
         }
-
-        .scrollable-content::-webkit-scrollbar-thumb:hover {
-            background: #a9d24c;
-        } */
+        
+        /* Handle sidebar display on different screen sizes */
+        @media (max-width: 1023px) {
+            .desktop-sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
     </style>
 </head>
-<body class="font-sans bg-lightBg text-gray-800 flex">
-    <!-- Fixed Sidebar Navigation -->
-    <nav class="fixed left-0 top-0 w-[20%] min-w-[250px] h-screen bg-primary p-5 z-10">
+<body class="font-sans bg-lightBg text-gray-800">
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-button" class="fixed top-4 left-4 z-30 bg-primary text-white p-2 rounded-md lg:hidden">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Mobile Sidebar Navigation (hidden by default) -->
+    <nav id="mobile-sidebar" class="mobile-menu fixed left-0 top-0 w-64 h-screen bg-primary p-5 z-20 lg:hidden">
+        <div class="flex justify-between items-center mb-8">
+            <img src="images/foodflow-logo.png" alt="FoodFlow Logo" class="h-16 w-auto">
+            <button id="close-mobile-menu" class="text-white text-xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <ul class="flex flex-col list-none p-0 space-y-6">
+            <li class="text-xl">
+                <a href="profile.php" class="block text-black no-underline bg-white p-3 rounded shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <p class="underline-animation font-semibold">Profile</p>
+                </a>
+            </li>
+            <li class="text-xl">
+                <a href="donations.php" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Donations</p>
+                </a>
+            </li>
+            <li class="text-xl">
+                <a href="community.html" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Community Page</p>
+                </a>
+            </li>
+            <li class="text-xl">
+                <a href="settings.php" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Settings</p>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    
+    <!-- Desktop Sidebar Navigation -->
+    <nav class="desktop-sidebar fixed left-0 top-0 w-[20%] min-w-[250px] h-screen bg-primary p-5 z-10 hidden lg:block">
         <img src="images/foodflow-logo.png" alt="FoodFlow Logo" class="h-24 w-auto mb-10">
         <ul class="flex flex-col list-none p-0 ml-5 space-y-12">
             <li class="text-xl">
@@ -171,51 +218,49 @@ if (isset($_SESSION['type'])) {
                     <p class="underline-animation">Settings</p>
                 </a>
             </li>
-            <li class="text-xl">
-                <a href="logout.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
-                    <p class="underline-animation">Logout</p>
-                </a>
-            </li>
         </ul>
     </nav>
 
+    <!-- Overlay for mobile menu -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-10 hidden lg:hidden"></div>
+
     <!-- Scrollable Main Content -->
-    <main class="ml-[20%] min-w-0 flex-1 p-8 h-screen overflow-y-auto scrollable-content">
-        <h1 class="text-3xl font-bold mb-8 pb-2 border-b-4 border-accent inline-block">Profile</h1>
+    <main class="main-content lg:ml-[20%] min-w-0 flex-1 p-4 sm:p-6 lg:p-8 h-screen overflow-y-auto scrollable-content">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 pb-2 border-b-4 border-accent inline-block mt-12 lg:mt-0">Profile</h1>
         
         <!-- Profile Header -->
-        <div class="flex items-center mb-10 flex-wrap md:flex-nowrap">
-            <img src="<?php echo $final_image; ?>" alt="Profile Image" class="rounded-xl w-36 h-36 md:w-40 md:h-40 object-cover mr-5 border-4 border-accent shadow-custom">
-            <div class="flex flex-col mt-4 md:mt-0">
-                <p class="font-bold text-2xl mb-2 text-primary"><?php echo $name; ?></p>
-                <span class="text-secondary text-sm italic bg-secondary/10 px-3.5 py-1 rounded-full inline-block">
+        <div class="flex flex-col sm:flex-row items-center mb-8 sm:mb-10">
+            <img src="<?php echo $final_image; ?>" alt="Profile Image" class="rounded-xl w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 object-cover sm:mr-5 mb-4 sm:mb-0 border-4 border-accent shadow-custom">
+            <div class="flex flex-col text-center sm:text-left">
+                <p class="font-bold text-xl sm:text-2xl mb-2 text-primary"><?php echo $name; ?></p>
+                <span class="text-secondary text-sm italic bg-secondary/10 px-3 py-1 rounded-full inline-block">
                     <?php echo ucfirst($user_type); ?>
                 </span>
             </div>
         </div>
         
         <!-- Profile Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <!-- Left Column - Main Info -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- Address Panel -->
-                <div class="bg-white rounded-xl p-6 shadow-custom">
-                    <h2 class="text-xl font-bold mb-4 pb-2 border-b-2 border-accent text-primary">Address</h2>
-                    <p class="leading-relaxed"><?php echo $address; ?></p>
+                <div class="bg-white rounded-xl p-4 sm:p-6 shadow-custom">
+                    <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4 pb-2 border-b-2 border-accent text-primary">Address</h2>
+                    <p class="leading-relaxed text-sm sm:text-base"><?php echo $address; ?></p>
                 </div>
                 
                 <!-- About Section -->
-                <div class="bg-white rounded-xl p-6 shadow-custom">
-                    <h2 class="text-xl font-bold mb-4 pb-2 border-b-2 border-accent text-primary">
+                <div class="bg-white rounded-xl p-4 sm:p-6 shadow-custom">
+                    <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4 pb-2 border-b-2 border-accent text-primary">
                         <?php echo ($user_type == 'receiver') ? 'About Us' : 'About Your Donations'; ?>
                     </h2>
                     
                     <?php if ($user_type == 'receiver'): ?>
-                    <p class="leading-relaxed">
+                    <p class="leading-relaxed text-sm sm:text-base">
                         The <?php echo $name; ?> is a passionate food bank dedicated to combatting hunger and food waste in the Guntur area. Through our relentless efforts, we collect surplus food from local businesses, farmers, and residents, redirecting it to those in need. Embracing the strength of community, we organize regular food drives and events to raise awareness about food insecurity while promoting sustainable practices. Your contributions, whether big or small, play a vital role in our mission to create a more food-secure environment.
                     </p>
                     <?php else: ?>
-                    <p class="leading-relaxed">
+                    <p class="leading-relaxed text-sm sm:text-base">
                         Thank you for being a valued food donor! Your contributions make a significant impact on our community by reducing food waste and helping those in need. As a <?php echo $doner_type; ?>, your donations of <?php echo $typical_donation; ?> help us serve our community better.
                     </p>
                     <?php endif; ?>
@@ -225,47 +270,47 @@ if (isset($_SESSION['type'])) {
             <!-- Right Column - Details -->
             <div class="space-y-6">
                 <!-- Contact Info Panel -->
-                <div class="bg-white rounded-xl p-6 shadow-custom">
-                    <h2 class="text-xl font-bold mb-4 pb-2 border-b-2 border-accent text-primary">Contact Info</h2>
+                <div class="bg-white rounded-xl p-4 sm:p-6 shadow-custom">
+                    <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4 pb-2 border-b-2 border-accent text-primary">Contact Info</h2>
                     
-                    <div class="space-y-4">
+                    <div class="space-y-3 sm:space-y-4">
                         <div>
-                            <p class="font-semibold text-gray-700 mb-1">Email</p>
-                            <p class="text-gray-800"><?php echo $email; ?></p>
+                            <p class="font-semibold text-gray-700 mb-1 text-sm sm:text-base">Email</p>
+                            <p class="text-gray-800 text-sm sm:text-base break-words"><?php echo $email; ?></p>
                         </div>
                         
                         <div>
-                            <p class="font-semibold text-gray-700 mb-1">Contact Number</p>
-                            <p class="text-gray-800"><?php echo $c_number; ?></p>
+                            <p class="font-semibold text-gray-700 mb-1 text-sm sm:text-base">Contact Number</p>
+                            <p class="text-gray-800 text-sm sm:text-base"><?php echo $phone; ?></p>
                         </div>
                     </div>
                 </div>
                 
                 <!-- User Type Specific Panel -->
-                <div class="bg-white rounded-xl p-6 shadow-custom">
-                    <h2 class="text-xl font-bold mb-4 pb-2 border-b-2 border-accent text-primary">
+                <div class="bg-white rounded-xl p-4 sm:p-6 shadow-custom">
+                    <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4 pb-2 border-b-2 border-accent text-primary">
                         <?php echo ($user_type == 'receiver') ? 'Food Bank Details' : 'Donor Details'; ?>
                     </h2>
                     
                     <?php if ($user_type == 'receiver'): ?>
                     <!-- Receiver specific content -->
-                    <div class="space-y-4">
+                    <div class="space-y-3 sm:space-y-4">
                         <div>
-                            <p class="font-semibold text-gray-700 mb-1">Food Types Accepted</p>
-                            <p class="text-gray-800"><?php echo $accept; ?></p>
+                            <p class="font-semibold text-gray-700 mb-1 text-sm sm:text-base">Food Types Accepted</p>
+                            <p class="text-gray-800 text-sm sm:text-base"><?php echo $accept; ?></p>
                         </div>
                         
                         <div>
-                            <p class="font-semibold text-gray-700 mb-1">Currently Accepting Donations</p>
-                            <p class="text-gray-800"><?php echo $req_bool; ?></p>
+                            <p class="font-semibold text-gray-700 mb-1 text-sm sm:text-base">Currently Accepting Donations</p>
+                            <p class="text-gray-800 text-sm sm:text-base"><?php echo $req_bool; ?></p>
                         </div>
                         
                         <div>
-                            <p class="font-semibold text-gray-700 mb-1">Today's Donations</p>
+                            <p class="font-semibold text-gray-700 mb-1 text-sm sm:text-base">Today's Donations</p>
                             <div class="progress-bar mt-2 mb-1">
                                 <div class="progress-fill" style="width: <?php echo ($daily_count / $req_people) * 100; ?>%"></div>
                             </div>
-                            <p class="text-right text-sm">
+                            <p class="text-right text-xs sm:text-sm">
                                 <span class="font-bold text-secondary"><?php echo $daily_count; ?></span> 
                                 of 
                                 <span class="font-bold"><?php echo $req_people; ?></span>
@@ -274,22 +319,22 @@ if (isset($_SESSION['type'])) {
                     </div>
                     <?php else: ?>
                     <!-- Donor specific content -->
-                    <div class="space-y-4">
+                    <div class="space-y-3 sm:space-y-4">
                         <div>
-                            <p class="font-semibold text-gray-700 mb-1">Donor Type</p>
-                            <span class="inline-block bg-accent/20 text-primary font-semibold px-3 py-1 rounded-full text-sm">
+                            <p class="font-semibold text-gray-700 mb-1 text-sm sm:text-base">Donor Type</p>
+                            <span class="inline-block bg-accent/20 text-primary font-semibold px-3 py-1 rounded-full text-xs sm:text-sm">
                                 <?php echo $doner_type; ?>
                             </span>
                         </div>
                         
                         <div>
-                            <p class="font-semibold text-gray-700 mb-1">Typical Donation</p>
-                            <p class="text-gray-800"><?php echo $typical_donation; ?></p>
+                            <p class="font-semibold text-gray-700 mb-1 text-sm sm:text-base">Typical Donation</p>
+                            <p class="text-gray-800 text-sm sm:text-base"><?php echo $typical_donation; ?></p>
                         </div>
                         
                         <div>
-                            <p class="font-semibold text-gray-700 mb-1">Delivery Option</p>
-                            <div class="flex items-center text-gray-800 mt-1">
+                            <p class="font-semibold text-gray-700 mb-1 text-sm sm:text-base">Delivery Option</p>
+                            <div class="flex items-center text-gray-800 mt-1 text-sm sm:text-base">
                                 <i class="fas fa-truck text-secondary mr-2"></i>
                                 <?php echo $delivery; ?>
                             </div>
@@ -303,5 +348,37 @@ if (isset($_SESSION['type'])) {
         <!-- Add some bottom padding for better scrolling experience -->
         <div class="h-10"></div>
     </main>
+
+    <script>
+        // Mobile menu functionality
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMobileMenu = document.getElementById('close-mobile-menu');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileSidebar.classList.add('open');
+            mobileOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+            mobileMenuButton.classList.add('hidden'); // Hide hamburger button when menu is open
+        });
+        
+        function closeMenu() {
+            mobileSidebar.classList.remove('open');
+            mobileOverlay.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+            mobileMenuButton.classList.remove('hidden'); // Show hamburger button when menu is closed
+        }
+        
+        closeMobileMenu.addEventListener('click', closeMenu);
+        mobileOverlay.addEventListener('click', closeMenu);
+        
+        // Close menu on window resize if switching to desktop view
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                closeMenu();
+            }
+        });
+    </script>
 </body>
 </html>

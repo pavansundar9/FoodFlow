@@ -25,7 +25,7 @@ if (isset($_SESSION['type'])) {
     if ($type == 'doner') {
         $doner_email = $_SESSION['email'];
         $doner_name = $_SESSION['name'];
-        $doner_c_number = $_SESSION['c_number'];
+        $doner_phone = $_SESSION['phone'];
         $table = 'fooddoners';
 
         // Query to fetch all records from the fooddoners table
@@ -234,10 +234,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <nav>
         <img src="images/foodflow-logo.png" alt="logo">
         <ul>
-            <li class="main-menu"><a href="#home">Home</a></li>
-            <li class="main-menu"><a href="#services">Services</a></li>
-            <li class="main-menu"><a href="#about">About Us</a></li>
-            <li class="main-menu"><a href="#contact">Contact</a></li>
+            <li class="main-menu"><a href="index.php">Home</a></li>
+            <li class="main-menu"><a href="index.php#services">Services</a></li>
+            <li class="main-menu"><a href="index.php#about">About Us</a></li>
+            <li class="main-menu"><a href="index.php#contact">Contact</a></li>
             <li class="user">
                 <p class="user-details">
                     <?php 
@@ -263,10 +263,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </li>
         </ul>
         <div id="other-menu">
-            <li class="main-menu-other"><a href="#home">Home</a></li>
-            <li class="main-menu-other"><a href="#services">Services</a></li>
-            <li class="main-menu-other"><a href="#about">About Us</a></li>
-            <li class="main-menu-other"><a href="#contact">Contact</a></li>
+            <li class="main-menu-other"><a href="index.php#home">Home</a></li>
+            <li class="main-menu-other"><a href="index.php#services">Services</a></li>
+            <li class="main-menu-other"><a href="index.php#about">About Us</a></li>
+            <li class="main-menu-other"><a href="index.php#contact">Contact</a></li>
             <hr class="main-menu-other">
             <?php 
                 if(isset($_SESSION['logged-in'])){
@@ -327,13 +327,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     echo "
                                 </div>
                                 <p class='foodbank-address'>{$bank['address']}</p>
-                                <p class='foodbank-phone'>{$bank['c_number']}</p>
+                                <p class='foodbank-phone'>{$bank['phone']}</p>
                                 <p class='foodbank-distance'>{$distance} km away</p>
                                 <form method='POST' action='donationform.php' style='align-self: flex-end;'>
                                     <input type='hidden' name='receiver_name' value='{$bank['name']}'>
                                     <input type='hidden' name='receiver_email' value='{$bank['email']}'>
                                     <input type='hidden' name='receiver_address' class='foodbank-address' value='{$bank['address']}'>
-                                    <input type='hidden' name='receiver_phone' class='foodbank-phone' value='{$bank['c_number']}'>
+                                    <input type='hidden' name='receiver_phone' class='foodbank-phone' value='{$bank['phone']}'>
                                     <input type='hidden' name='receiver_distance' class='foodbank-distance' value='{$bank['distance']}'>
                                     <button type='submit' class='donate-btn'>Donate</button>
                                 </form>

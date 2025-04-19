@@ -12,7 +12,7 @@ if (!isset($_SESSION['type']) || $_SESSION['type'] !== 'doner') {
 $donor_email = $_SESSION['email'];
 $receiver_email = $_SESSION['receiver_email'];
 $doner_name = $_SESSION['name'];
-$phone = $_SESSION['c_number'];
+$phone = $_SESSION['phone'];
 
 // Function to sanitize input data
 function sanitize_input($data) {

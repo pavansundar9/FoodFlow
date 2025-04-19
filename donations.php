@@ -78,7 +78,6 @@ if (isset($_SESSION['type'])) {
         /* Set up scrollable main content */
         body {
             overflow: hidden;
-            /* Prevent double scrollbars */
             height: 100vh;
         }
 
@@ -91,22 +90,79 @@ if (isset($_SESSION['type'])) {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
+
+        /* Mobile menu styles */
+        #mobile-sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        #mobile-sidebar.open {
+            transform: translateX(0);
+        }
+
+        /* Optional: Make the menu button transition smoother */
+        #mobile-menu-button {
+            transition: opacity 0.3s ease;
+        }
+
+        #mobile-menu-button.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 
 <body class="font-sans bg-lightBg text-gray-800 flex">
-    <!-- Fixed Sidebar Navigation -->
-    <nav class="fixed left-0 top-0 w-[20%] min-w-[250px] h-screen bg-primary p-5 z-10">
-        <img src="images/foodflow-logo.png" alt="FoodFlow Logo" class="h-24 w-auto mb-10">
-        <ul class="flex flex-col list-none p-0 ml-5 space-y-12">
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-button" class="fixed top-4 left-4 z-30 bg-primary text-white p-2 rounded-md lg:hidden">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Mobile Sidebar Navigation (hidden by default) -->
+    <nav id="mobile-sidebar" class="mobile-menu fixed left-0 top-0 w-64 h-screen bg-primary p-5 z-20 lg:hidden">
+        <div class="flex justify-between items-center mb-8">
+            <img src="images/foodflow-logo.png" alt="FoodFlow Logo" class="h-16 w-auto">
+            <button id="close-mobile-menu" class="text-white text-xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <ul class="flex flex-col list-none p-0 space-y-6">
             <li class="text-xl">
-                <a href="profile.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
-                    <p class="underline-animation">Profile</p>
+                <a href="profile.php" class="block text-black no-underline bg-white p-3 rounded shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <p class="underline-animation font-semibold">Profile</p>
                 </a>
             </li>
             <li class="text-xl">
-                <a href="donations.php" class="block text-black no-underline bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300">
-                    <p class="underline-animation font-semibold">Donations</p>
+                <a href="donations.php" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Donations</p>
+                </a>
+            </li>
+            <li class="text-xl">
+                <a href="community.html" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Community Page</p>
+                </a>
+            </li>
+            <li class="text-xl">
+                <a href="settings.php" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Settings</p>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Desktop Sidebar Navigation -->
+    <nav class="desktop-sidebar fixed left-0 top-0 w-[20%] min-w-[250px] h-screen bg-primary p-5 z-10 hidden lg:block">
+        <img src="images/foodflow-logo.png" alt="FoodFlow Logo" class="h-24 w-auto mb-10">
+        <ul class="flex flex-col list-none p-0 ml-5 space-y-12">
+            <li class="text-xl">
+                <a href="profile.php" class="block text-black no-underline bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <p class="underline-animation font-semibold">Profile</p>
+                </a>
+            </li>
+            <li class="text-xl">
+                <a href="donations.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Donations</p>
                 </a>
             </li>
             <li class="text-xl">
@@ -119,17 +175,16 @@ if (isset($_SESSION['type'])) {
                     <p class="underline-animation">Settings</p>
                 </a>
             </li>
-            <li class="text-xl">
-                <a href="logout.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
-                    <p class="underline-animation">Logout</p>
-                </a>
-            </li>
         </ul>
     </nav>
 
+    <!-- Overlay for mobile menu -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-10 hidden lg:hidden"></div>
+
+
     <!-- Scrollable Main Content -->
-    <main class="ml-[20%] min-w-0 flex-1 p-8 h-screen overflow-y-auto scrollable-content">
-        <h1 class="text-3xl font-bold mb-8 pb-2 border-b-4 border-accent inline-block">Donations</h1>
+    <main class="main-content lg:ml-[20%] min-w-0 flex-1 p-4 sm:p-6 lg:p-8 h-screen overflow-y-auto scrollable-content">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 pb-2 border-b-4 border-accent inline-block mt-12 lg:mt-0">Settings</h1>
 
         <!-- Donations Container -->
         <div class="flex flex-wrap gap-4 justify-between">
@@ -148,7 +203,7 @@ if (isset($_SESSION['type'])) {
                         if ($result->num_rows > 0) {
                             $receiver_row = $result->fetch_assoc();
                             $receiver_name = $receiver_row['name'];
-                            $receiver_c_number = $receiver_row['c_number'];
+                            $receiver_phone = $receiver_row['phone'];
                             $receiver_address = $receiver_row['address'];
                             $receiver_daily_count = $receiver_row['daily_count'];
                             $receiver_req_bool = ($receiver_row['req_bool'] == 1) ? 'Yes' : 'No';
@@ -165,35 +220,35 @@ if (isset($_SESSION['type'])) {
                         if ($result->num_rows > 0) {
                             $doner_row = $result->fetch_assoc();
                             $doner_name = $doner_row['name'];
-                            $doner_c_number = $doner_row['c_number'];
+                            $doner_phone = $doner_row['phone'];
                             $doner_address = $doner_row['address'];
                         } else {
                             $doner_name = "Unknown Donor";
                         }
                     }
             ?>
-                    <div class="donation-card bg-white rounded-xl shadow-custom w-[48%] mb-6 overflow-hidden group">
-                        <div class="flex p-5 items-center">
-                            <div class="w-24 h-24 min-w-[6rem] rounded-lg overflow-hidden bg-gray-100 mr-4">
+                    <div class="donation-card bg-white rounded-xl shadow-custom w-full sm:w-[48%] mb-6 overflow-hidden group">
+                        <div class="flex flex-col sm:flex-row p-4 sm:p-5 items-start sm:items-center">
+                            <div class="w-full sm:w-24 h-40 sm:h-24 min-w-0 sm:min-w-[6rem] rounded-lg overflow-hidden bg-gray-100 mb-3 sm:mb-0 sm:mr-4">
                                 <img class="w-full h-full object-cover" src="<?php echo $first_image_path; ?>" alt="Donation Image">
                             </div>
 
-                            <div class="flex-1">
+                            <div class="flex-1 w-full">
                                 <div class="flex justify-between items-start">
-                                    <h3 class="text-xl font-bold text-primary mb-1">
+                                    <h3 class="text-lg sm:text-xl font-bold text-primary mb-1">
                                         <?php echo ($type == 'doner') ? htmlspecialchars($receiver_name) : htmlspecialchars($doner_name); ?>
                                     </h3>
                                 </div>
 
                                 <div class="space-y-2">
-                                    <div class="flex items-center">
+                                    <div class="flex flex-col sm:flex-row sm:items-center">
                                         <span class="text-sm font-semibold text-gray-700">Donation Date:</span>
-                                        <span class="text-sm ml-2"><?php echo $row["donation_date"]; ?></span>
+                                        <span class="text-sm sm:ml-2"><?php echo $row["donation_date"]; ?></span>
                                     </div>
 
-                                    <div class="flex items-center">
-                                        <span class="text-sm font-semibold text-gray-700 mr-2">Food Type:</span>
-                                        <span class="text-xs bg-secondary/10 text-secondary rounded-full px-3 py-1">
+                                    <div class="flex flex-col sm:flex-row sm:items-center">
+                                        <span class="text-sm font-semibold text-gray-700 sm:mr-2">Food Type:</span>
+                                        <span class="text-xs bg-secondary/10 text-secondary rounded-full px-3 py-1 mt-1 sm:mt-0 inline-block">
                                             <?php echo $row["food_type"]; ?>
                                         </span>
                                     </div>
@@ -203,20 +258,20 @@ if (isset($_SESSION['type'])) {
 
                         <?php if ($type == 'doner' || $type == 'receiver'): ?>
                             <!-- This part only exists if details are to be shown -->
-                            <div class="bg-gray-50 px-5 py-0 max-h-0 group-hover:max-h-48 group-hover:py-3 transition-all duration-300 overflow-hidden">
+                            <div class="bg-gray-50 px-4 sm:px-5 py-0 max-h-0 group-hover:max-h-[32rem] sm:group-hover:max-h-48 group-hover:py-3 transition-all duration-300 overflow-hidden">
                                 <?php if ($type == 'doner'): ?>
-                                    <div class="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                        <div class="mb-2 sm:mb-0">
                                             <p class="font-semibold text-gray-700">Contact Number:</p>
-                                            <p><?php echo htmlspecialchars($receiver_c_number); ?></p>
+                                            <p><?php echo htmlspecialchars($receiver_phone); ?></p>
                                         </div>
                                         <div>
                                             <p class="font-semibold text-gray-700">Address:</p>
-                                            <p><?php echo htmlspecialchars($receiver_address); ?></p>
+                                            <p class="break-words"><?php echo htmlspecialchars($receiver_address); ?></p>
                                         </div>
                                     </div>
-                                    <div class="grid grid-cols-2 gap-4 text-sm mt-3">
-                                        <div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-3">
+                                        <div class="mb-2 sm:mb-0">
                                             <p class="font-semibold text-gray-700">Daily Count:</p>
                                             <p><?php echo htmlspecialchars($receiver_daily_count); ?></p>
                                         </div>
@@ -225,8 +280,8 @@ if (isset($_SESSION['type'])) {
                                             <p><?php echo htmlspecialchars($receiver_req_bool); ?></p>
                                         </div>
                                     </div>
-                                    <div class="grid grid-cols-2 gap-4 text-sm mt-3">
-                                        <div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-3">
+                                        <div class="mb-2 sm:mb-0">
                                             <p class="font-semibold text-gray-700">Food Accepted:</p>
                                             <p><?php echo htmlspecialchars($receiver_accept); ?></p>
                                         </div>
@@ -236,14 +291,14 @@ if (isset($_SESSION['type'])) {
                                         </div>
                                     </div>
                                 <?php else: ?>
-                                    <div class="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                        <div class="mb-2 sm:mb-0">
                                             <p class="font-semibold text-gray-700">Contact Number:</p>
-                                            <p><?php echo htmlspecialchars($doner_c_number); ?></p>
+                                            <p><?php echo htmlspecialchars($doner_phone); ?></p>
                                         </div>
                                         <div>
                                             <p class="font-semibold text-gray-700">Address:</p>
-                                            <p><?php echo htmlspecialchars($doner_address); ?></p>
+                                            <p class="break-words"><?php echo htmlspecialchars($doner_address); ?></p>
                                         </div>
                                     </div>
                                 <?php endif; ?>
@@ -277,6 +332,37 @@ if (isset($_SESSION['type'])) {
         <!-- Add some bottom padding for better scrolling experience -->
         <div class="h-10"></div>
     </main>
+    <script>
+        // Mobile menu functionality
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMobileMenu = document.getElementById('close-mobile-menu');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileSidebar.classList.add('open');
+            mobileOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+            mobileMenuButton.classList.add('hidden'); // Hide hamburger button when menu is open
+        });
+
+        function closeMenu() {
+            mobileSidebar.classList.remove('open');
+            mobileOverlay.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+            mobileMenuButton.classList.remove('hidden'); // Show hamburger button when menu is closed
+        }
+
+        closeMobileMenu.addEventListener('click', closeMenu);
+        mobileOverlay.addEventListener('click', closeMenu);
+
+        // Close menu on window resize if switching to desktop view
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                closeMenu();
+            }
+        });
+    </script>
 </body>
 
 </html>

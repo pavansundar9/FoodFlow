@@ -33,7 +33,7 @@
                         unset($_SESSION['error_message']);
                     }
                 ?><br>
-                <div class="input-wrapper">
+                <div class="input-wrapper radio-wrapper">
                     <!-- <label for="type" class="radio-label">Type of User:</label><br><br> -->
                     <div class="radio">
                         <input type="radio" name="type" value="doner" id="doner"><label for="doner">Food Doner</label>

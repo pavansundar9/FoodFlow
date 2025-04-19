@@ -1097,6 +1097,31 @@ textarea.input {
     .hero-section {
         height: auto;
         max-height: none;
+        padding-bottom: 0;
+        /* background-color: #c8ed6c; */
+    }
+
+    .cta{
+        height: fit-content;
+        padding: 20px;
+        margin-top: 20px;
+        font-size: inherit;
+    }
+
+    .cta h2{
+        margin-top: 0;
+        font-size: 2rem;
+    }
+
+    .image-side .doner-receiver {
+        margin-top: 50px;
+        height: 400px;
+    }
+
+    .image-side .background {
+        height: 400px;
+        width: 400px;
+        margin-top: 0;
     }
 
     .doner-receiver img {
@@ -1107,6 +1132,8 @@ textarea.input {
 @media (max-width: 768px) {
     .hero-section {
         flex-direction: column;
+        margin: 2rem;
+        margin-bottom: 7rem;
     }
 
     .cta,

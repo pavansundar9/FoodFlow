@@ -22,7 +22,7 @@ if (!$conn) {
 // Initialize variables
 $email = $_SESSION['email'];
 $type = $_SESSION['type'];
-$name = $c_number = $address = $error = $success = "";
+$name = $phone = $address = $error = $success = "";
 
 // Fetch user details
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
     if ($row = mysqli_fetch_assoc($result)) {
         $name = $row['name'];
-        $c_number = $row['c_number'];
+        $phone = $row['phone'];
         $address = $row['address'];
     }
 }
@@ -43,16 +43,16 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = htmlspecialchars(trim($_POST['name']));
-    $c_number = htmlspecialchars(trim($_POST['c_number']));
+    $phone = htmlspecialchars(trim($_POST['phone']));
     $address = htmlspecialchars(trim($_POST['address']));
 
-    if (empty($name) || empty($c_number) || empty($address)) {
+    if (empty($name) || empty($phone) || empty($address)) {
         $error = "All fields are required.";
     } else {
         $table = ($type == 'doner') ? 'fooddoners' : 'foodreceivers';
-        $sql = "UPDATE $table SET name = ?, c_number = ?, address = ? WHERE email = ?";
+        $sql = "UPDATE $table SET name = ?, phone = ?, address = ? WHERE email = ?";
         $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param($stmt, "ssss", $name, $c_number, $address, $email);
+        mysqli_stmt_bind_param($stmt, "ssss", $name, $phone, $address, $email);
 
         if (mysqli_stmt_execute($stmt)) {
             $success = "Profile updated successfully.";
@@ -74,6 +74,8 @@ mysqli_close($conn);
     <title>Settings - FoodFlow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <script>
         tailwind.config = {
             theme: {
@@ -94,15 +96,10 @@ mysqli_close($conn);
             }
         }
     </script>
-        <style>
+    <style>
         @keyframes underlineAnimation {
-            from {
-                width: 0;
-            }
-
-            to {
-                width: 100%;
-            }
+            from { width: 0; }
+            to { width: 100%; }
         }
 
         .underline-animation {
@@ -116,17 +113,82 @@ mysqli_close($conn);
         .underline-animation:hover {
             background-size: 100% 2px;
         }
+
+        /* Mobile nav menu */
+        .mobile-menu {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+        
+        @media (min-width: 1024px) {
+            #mobile-menu-button {
+                display: none;
+            }
+        }
+        
+        /* Handle sidebar display on different screen sizes */
+        @media (max-width: 1023px) {
+            .desktop-sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
-<body class="font-sans bg-lightBg text-gray-800 flex">
-    <!-- Sidebar Navigation -->
-    <nav class="fixed left-0 top-0 w-[20%] min-w-[250px] h-screen bg-primary p-5 z-10">
+<body class="font-sans bg-lightBg text-gray-800">
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-button" class="fixed top-4 left-4 z-30 bg-primary text-white p-2 rounded-md lg:hidden">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Mobile Sidebar Navigation (hidden by default) -->
+    <nav id="mobile-sidebar" class="mobile-menu fixed left-0 top-0 w-64 h-screen bg-primary p-5 z-20 lg:hidden">
+        <div class="flex justify-between items-center mb-8">
+            <img src="images/foodflow-logo.png" alt="FoodFlow Logo" class="h-16 w-auto">
+            <button id="close-mobile-menu" class="text-white text-xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <ul class="flex flex-col list-none p-0 space-y-6">
+            <li class="text-xl">
+                <a href="profile.php" class="block text-black no-underline bg-white p-3 rounded shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <p class="underline-animation font-semibold">Profile</p>
+                </a>
+            </li>
+            <li class="text-xl">
+                <a href="donations.php" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Donations</p>
+                </a>
+            </li>
+            <li class="text-xl">
+                <a href="community.html" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Community Page</p>
+                </a>
+            </li>
+            <li class="text-xl">
+                <a href="settings.php" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Settings</p>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    
+    <!-- Desktop Sidebar Navigation -->
+    <nav class="desktop-sidebar fixed left-0 top-0 w-[20%] min-w-[250px] h-screen bg-primary p-5 z-10 hidden lg:block">
         <img src="images/foodflow-logo.png" alt="FoodFlow Logo" class="h-24 w-auto mb-10">
         <ul class="flex flex-col list-none p-0 ml-5 space-y-12">
             <li class="text-xl">
-                <a href="profile.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
-                    <p class="underline-animation">Profile</p>
+                <a href="profile.php" class="block text-black no-underline bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <p class="underline-animation font-semibold">Profile</p>
                 </a>
             </li>
             <li class="text-xl">
@@ -140,22 +202,21 @@ mysqli_close($conn);
                 </a>
             </li>
             <li class="text-xl">
-                <a href="settings.php" class="block text-black no-underline bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300">
-                    <p class="underline-animation font-semibold">Settings</p>
-                </a>
-            </li>
-            <li class="text-xl">
-                <a href="logout.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
-                    <p class="underline-animation">Logout</p>
+                <a href="settings.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
+                    <p class="underline-animation">Settings</p>
                 </a>
             </li>
         </ul>
     </nav>
 
-    <!-- Settings Form -->
-    <main class="ml-[20%] flex-1 p-8 h-screen overflow-y-auto scrollable-content">
-        <h2 class="text-3xl font-bold mb-8 pb-2 border-b-4 border-accent inline-block">Settings</h2>
+    <!-- Overlay for mobile menu -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-10 hidden lg:hidden"></div>
 
+
+    <!-- Settings Form -->
+    <main class="main-content lg:ml-[20%] min-w-0 flex-1 p-4 sm:p-6 lg:p-8 h-screen overflow-y-auto scrollable-content">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 pb-2 border-b-4 border-accent inline-block mt-12 lg:mt-0">Settings</h1>
+     
         <?php if (!empty($error)) : ?>
             <div class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 shadow"><?php echo $error; ?></div>
         <?php endif; ?>
@@ -171,8 +232,8 @@ mysqli_close($conn);
             </div>
 
             <div class="mb-4">
-                <label for="c_number" class="block text-sm font-semibold mb-1">Contact Number</label>
-                <input type="text" id="c_number" name="c_number" value="<?php echo $c_number; ?>" required class="w-full border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-accent">
+                <label for="phone" class="block text-sm font-semibold mb-1">Contact Number</label>
+                <input type="text" id="phone" name="phone" value="<?php echo $phone; ?>" required class="w-full border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-accent">
             </div>
 
             <div class="mb-4">
@@ -182,7 +243,45 @@ mysqli_close($conn);
 
             <button type="submit" class="bg-secondary text-white px-6 py-2 rounded shadow hover:bg-secondary/90 transition-all">Update</button>
         </form>
+        <div class="mt-8">
+            <a href="logout.php" class="bg-red-500 text-white text-lg px-6 py-3 rounded-lg hover:bg-red-600 transition">
+                Logout
+            </a>
+        </div>
+
     </main>
+
+    <script>
+        // Mobile menu functionality
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMobileMenu = document.getElementById('close-mobile-menu');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileSidebar.classList.add('open');
+            mobileOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+            mobileMenuButton.classList.add('hidden'); // Hide hamburger button when menu is open
+        });
+        
+        function closeMenu() {
+            mobileSidebar.classList.remove('open');
+            mobileOverlay.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+            mobileMenuButton.classList.remove('hidden'); // Show hamburger button when menu is closed
+        }
+        
+        closeMobileMenu.addEventListener('click', closeMenu);
+        mobileOverlay.addEventListener('click', closeMenu);
+        
+        // Close menu on window resize if switching to desktop view
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                closeMenu();
+            }
+        });
+    </script>
 </body>
 
 </html>

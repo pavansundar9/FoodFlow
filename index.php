@@ -20,14 +20,14 @@
         if ($type == 'doner') {
             $doner_email = $_SESSION['email'];
             $doner_name = $_SESSION['name'];
-            $doner_c_number = $_SESSION['c_number'];
+            $doner_phone = $_SESSION['phone'];
             $table = 'fooddoners';
             // $location = 'doner_extra_info.php';
             $sql = "SELECT * FROM $table WHERE email = '$doner_email'";
         } else {
             $receiver_email = $_SESSION['email'];
             $receiver_name = $_SESSION['name'];
-            $receiver_c_number = $_SESSION['c_number'];
+            $receiver_phone = $_SESSION['phone'];
             $table = 'foodreceivers';
 
             $sql = "SELECT * FROM $table WHERE email = '$receiver_email'";

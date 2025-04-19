@@ -43,7 +43,7 @@
             $_SESSION['name'] = $name;
             $_SESSION['email'] = $email;
             $_SESSION['type'] = $type;
-            $_SESSION['c_number'] = $number;
+            $_SESSION['phone'] = $number;
             if ($type == 'doner') {
                 $table = 'fooddoners';
             } else {
@@ -59,7 +59,7 @@
                 exit();
             } else {
                 // Insert data into the table
-                $sql_insert = "INSERT INTO $table (name, email, user_type, c_number, address) VALUES ('$name', '$email', '$type', '$number', '$address')";
+                $sql_insert = "INSERT INTO $table (name, email, user_type, phone, address) VALUES ('$name', '$email', '$type', '$number', '$address')";
                 if (mysqli_query($conn, $sql_insert)) {
                     // Redirect to create password page
                     $location = 'create-password.php';

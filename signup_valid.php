@@ -87,7 +87,7 @@
                     header("Location: create-password.php");
                 }
                 else{
-                    $query = "INSERT INTO foodreceivers (name, email, user_type, c_number,address) VALUES ('$name', '$email', '$type', '$number','$address')";
+                    $query = "INSERT INTO foodreceivers (name, email, user_type, phone,address) VALUES ('$name', '$email', '$type', '$number','$address')";
 
                     $receiverTable = mysqli_query($conn, $query);
 

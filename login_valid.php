@@ -49,16 +49,16 @@ if (isset($_POST['submit'])) {
                 // if($type == 'doner'){
                 //     $_SESSION['doner_email'] = $email;
                 //     $_SESSION['doner_name'] = $row['name'];
-                //     $_SESSION['doner_c_number'] = $row['c_number'];
+                //     $_SESSION['doner_phone'] = $row['phone'];
                 // }else{
                 //     $_SESSION['receiver_email'] = $email;
                 //     $_SESSION['receiver_name'] = $row['name'];
-                //     $_SESSION['receiver_c_number'] = $row['c_number'];
+                //     $_SESSION['receiver_phone'] = $row['phone'];
                 // }
                 $_SESSION['email'] = $email;
                 $_SESSION['type'] = $type;
                 $_SESSION['name'] = $row['name'];
-                $_SESSION['c_number'] = $row['c_number'];
+                $_SESSION['phone'] = $row['phone'];
                 $_SESSION['logged-in'] = true;
                 if($type =='doner'){
                     header("Location: index.php");
