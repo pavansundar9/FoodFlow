@@ -28,7 +28,8 @@ if (isset($_SESSION['type'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoodFlow-Donations</title>
+    <title>Donations - FoodFlow</title>
+    <link rel="website icon" type="image/png" href="images/food-flow-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -156,17 +157,17 @@ if (isset($_SESSION['type'])) {
         <img src="images/foodflow-logo.png" alt="FoodFlow Logo" class="h-24 w-auto mb-10">
         <ul class="flex flex-col list-none p-0 ml-5 space-y-12">
             <li class="text-xl">
-                <a href="profile.php" class="block text-black no-underline bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300">
+                <a href="profile.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded  transition-shadow duration-300">
                     <p class="underline-animation font-semibold">Profile</p>
                 </a>
             </li>
             <li class="text-xl">
-                <a href="donations.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
+                <a href="donations.php" class="block text-black no-underline bg-white p-4 rounded shadow-md hover:shadow-lg transition-colors duration-300">
                     <p class="underline-animation">Donations</p>
                 </a>
             </li>
             <li class="text-xl">
-                <a href="community.html" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
+                <a href="communitypage.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
                     <p class="underline-animation">Community Page</p>
                 </a>
             </li>
@@ -184,7 +185,7 @@ if (isset($_SESSION['type'])) {
 
     <!-- Scrollable Main Content -->
     <main class="main-content lg:ml-[20%] min-w-0 flex-1 p-4 sm:p-6 lg:p-8 h-screen overflow-y-auto scrollable-content">
-        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 pb-2 border-b-4 border-accent inline-block mt-12 lg:mt-0">Settings</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 pb-2 border-b-4 border-accent inline-block mt-12 lg:mt-0">Donations</h1>
 
         <!-- Donations Container -->
         <div class="flex flex-wrap gap-4 justify-between">
@@ -318,15 +319,16 @@ if (isset($_SESSION['type'])) {
                             "You haven't received any donations yet. They'll appear here once you do.";
                         ?>
                     </p>
-                    <?php if ($type == 'doner'): ?>
-                        <button class="mt-4 bg-secondary hover:bg-secondary/90 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-lg">
-                            Make a Donation
-                        </button>
-                    <?php endif; ?>
+                    
                 </div>
             <?php
             }
             ?>
+            <?php if ($type == 'doner'): ?>
+                <button class="mt-4 bg-secondary hover:bg-secondary/90 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-lg">
+                    Make a Donation
+                </button>
+            <?php endif; ?>
         </div>
 
         <!-- Add some bottom padding for better scrolling experience -->

@@ -6,7 +6,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="website icon" type="image/png" href="food-flow-icon.png">
+    <!-- <link rel="website icon" type="image/png" href="food-flow-icon.png"> -->
+    <link rel="website icon" type="image/png" href="images/food-flow-icon.png">
     <link rel="stylesheet"  href="signup.css"> 
 
     <link href="https://fonts.googleapis.com/css2?family=Meddon&display=swap" rel="stylesheet">
@@ -14,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Paprika&family=Tenor+Sans&display=swap" rel="stylesheet">
     
-    <title>FoodFlow-Login</title>
+    <title>FoodFlow - Login</title>
 </head>
 <body>
     <!-- <div class="bg"></div> -->
