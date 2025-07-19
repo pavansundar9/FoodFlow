@@ -310,25 +310,35 @@ if (isset($_SESSION['type'])) {
                 }
             } else {
                 ?>
-                <div class="w-full flex flex-col items-center justify-center py-10">
-                    <img class="max-w-xl w-full h-auto rounded-2xl mb-6" src="images/no-donations-yet.jpeg" alt="No donations yet">
-                    <h2 class="text-2xl font-bold text-primary mb-2">No Donations Yet</h2>
-                    <p class="text-gray-600 text-center max-w-md">
-                        <?php echo ($type == 'doner') ?
-                            "You haven't made any donations yet. Start making a difference today!" :
-                            "You haven't received any donations yet. They'll appear here once you do.";
-                        ?>
-                    </p>
-                    
+                <!-- No Donations Message - Centered to the entire page -->
+                <div class="fixed inset-0 lg:left-[20%] flex flex-col items-center justify-center z-0 pointer-events-none">
+                    <div class="text-center px-4 pointer-events-auto">
+                        <!-- Icon -->
+                        <div class="mb-6">
+                            <i class="fas fa-heart text-6xl sm:text-7xl text-gray-300"></i>
+                        </div>
+                        
+                        <!-- Main Message -->
+                        <h2 class="text-2xl sm:text-3xl font-bold text-primary mb-4">No Donations Yet</h2>
+                        <p class="text-gray-600 text-center max-w-md mx-auto mb-8 text-sm sm:text-base">
+                            <?php echo ($type == 'doner') ?
+                                "You haven't made any donations yet. Start making a difference in someone's life today!" :
+                                "You haven't received any donations yet. They'll appear here once you do.";
+                            ?>
+                        </p>
+                        
+                        <!-- Donate Button (only for donors) -->
+                        <?php if ($type == 'doner'): ?>
+                            <button onclick="window.location.href='search-foodBank.php'" 
+                                class="bg-secondary hover:bg-secondary/90 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base">
+                                <i class="fas fa-plus mr-2"></i>Make Your First Donation
+                            </button>
+                        <?php endif; ?>
+                    </div>
                 </div>
             <?php
             }
             ?>
-            <?php if ($type == 'doner'): ?>
-                <button class="mt-4 bg-secondary hover:bg-secondary/90 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-lg">
-                    Make a Donation
-                </button>
-            <?php endif; ?>
         </div>
 
         <!-- Add some bottom padding for better scrolling experience -->
