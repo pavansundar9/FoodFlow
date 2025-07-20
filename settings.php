@@ -23,7 +23,7 @@ if (!$conn) {
 $email = $_SESSION['email'];
 $type = $_SESSION['type'];
 $name = $phone = $address = $error = $success = "";
-$accept = 1;
+$accept = 0; // Default to 0
 $daily_count = 0;
 $req_people = 0;
 
@@ -41,12 +41,21 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $phone = $row['phone'];
         $address = $row['address'];
         
+        // FIX 1: Only fetch foodreceiver-specific fields if user is a foodreceiver
         if ($type == 'foodreceiver') {
-            $accept = isset($row['accept']) ? $row['accept'] : 1;
-            $daily_count = isset($row['daily_count']) ? $row['daily_count'] : 0;
-            $req_people = isset($row['req_people']) ? $row['req_people'] : 0;
+            // Ensure we're getting the correct boolean value from database
+            $accept = isset($row['req_bool']) ? (int)$row['req_bool'] : 0;
+            $daily_count = isset($row['daily_count']) ? (int)$row['daily_count'] : 0;
+            $req_people = isset($row['req_people']) ? (int)$row['req_people'] : 0;
+            
+            // Debug log to verify values being fetched
+            error_log("GET - User: $email - req_bool from DB: " . ($row['req_bool'] ?? 'NULL'));
+            error_log("GET - User: $email - accept value set to: $accept");
         }
+    } else {
+        $error = "User data not found.";
     }
+    mysqli_stmt_close($stmt);
 }
 
 // Handle form submission
@@ -61,21 +70,82 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $table = ($type == 'doner') ? 'fooddoners' : 'foodreceivers';
         
         if ($type == 'foodreceiver') {
-            $accept = isset($_POST['accept']) ? 1 : 0;
-            $daily_count = intval($_POST['daily_count']);
-            $sql = "UPDATE $table SET name = ?, phone = ?, address = ?, accept = ?, daily_count = ? WHERE email = ?";
+            // FIX 2: Properly handle the accept status from POST data
+            if (isset($_POST['accept_status'])) {
+                $accept = ($_POST['accept_status'] === '1') ? 1 : 0;
+            } else {
+                // FIX 3: If not provided, fetch current value from database
+                $current_sql = "SELECT req_bool FROM $table WHERE email = ?";
+                $current_stmt = mysqli_prepare($conn, $current_sql);
+                mysqli_stmt_bind_param($current_stmt, "s", $email);
+                mysqli_stmt_execute($current_stmt);
+                $current_result = mysqli_stmt_get_result($current_stmt);
+                
+                if ($current_row = mysqli_fetch_assoc($current_result)) {
+                    $accept = isset($current_row['req_bool']) ? (int)$current_row['req_bool'] : 0;
+                } else {
+                    $accept = 0; // Default if no record found
+                }
+                mysqli_stmt_close($current_stmt);
+            }
+            
+            $daily_count = intval($_POST['daily_count'] ?? 0);
+            
+            // Debug logging
+            error_log("POST - User: $email - accept_status from form: " . ($_POST['accept_status'] ?? 'NOT SET'));
+            error_log("POST - User: $email - Final accept value: $accept");
+            
+            // FIX 4: Update query with proper parameter binding
+            $sql = "UPDATE $table SET name = ?, phone = ?, address = ?, req_bool = ?, daily_count = ? WHERE email = ?";
             $stmt = mysqli_prepare($conn, $sql);
-            mysqli_stmt_bind_param($stmt, "sssiis", $name, $phone, $address, $accept, $daily_count, $email);
+            if (!$stmt) {
+                $error = "Prepare statement failed: " . mysqli_error($conn);
+            } else {
+                mysqli_stmt_bind_param($stmt, "sssiis", $name, $phone, $address, $accept, $daily_count, $email);
+            }
         } else {
+            // For donors, only update basic info
             $sql = "UPDATE $table SET name = ?, phone = ?, address = ? WHERE email = ?";
             $stmt = mysqli_prepare($conn, $sql);
-            mysqli_stmt_bind_param($stmt, "ssss", $name, $phone, $address, $email);
+            if (!$stmt) {
+                $error = "Prepare statement failed: " . mysqli_error($conn);
+            } else {
+                mysqli_stmt_bind_param($stmt, "ssss", $name, $phone, $address, $email);
+            }
         }
 
-        if (mysqli_stmt_execute($stmt)) {
+        // Execute the update if statement was prepared successfully
+        if (isset($stmt) && mysqli_stmt_execute($stmt)) {
             $success = "Profile updated successfully! 🎉";
-        } else {
+            
+            // FIX 5: Re-fetch updated data to ensure display shows correct values
+            $fetch_sql = "SELECT * FROM $table WHERE email = ?";
+            $fetch_stmt = mysqli_prepare($conn, $fetch_sql);
+            mysqli_stmt_bind_param($fetch_stmt, "s", $email);
+            mysqli_stmt_execute($fetch_stmt);
+            $fetch_result = mysqli_stmt_get_result($fetch_stmt);
+            
+            if ($fetch_row = mysqli_fetch_assoc($fetch_result)) {
+                $name = $fetch_row['name'];
+                $phone = $fetch_row['phone'];
+                $address = $fetch_row['address'];
+                
+                if ($type == 'foodreceiver') {
+                    $accept = (int)$fetch_row['req_bool'];
+                    $daily_count = (int)$fetch_row['daily_count'];
+                    $req_people = (int)$fetch_row['req_people'];
+                    
+                    error_log("REFETCH - User: $email - Updated accept value: $accept");
+                }
+            }
+            mysqli_stmt_close($fetch_stmt);
+            
+        } elseif (isset($stmt)) {
             $error = "Error updating profile: " . mysqli_error($conn);
+        }
+        
+        if (isset($stmt)) {
+            mysqli_stmt_close($stmt);
         }
     }
 }
@@ -331,7 +401,7 @@ mysqli_close($conn);
                         <i class="fas fa-user mr-2 text-secondary"></i>
                         Full Name
                     </label>
-                    <input type="text" id="name" name="name" value="<?php echo $name; ?>" required 
+                    <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($name); ?>" required 
                            class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
                 </div>
 
@@ -341,7 +411,7 @@ mysqli_close($conn);
                         <i class="fas fa-phone mr-2 text-secondary"></i>
                         Contact Number
                     </label>
-                    <input type="text" id="phone" name="phone" value="<?php echo $phone; ?>" required 
+                    <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($phone); ?>" required 
                            class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
                 </div>
 
@@ -351,7 +421,7 @@ mysqli_close($conn);
                         <i class="fas fa-map-marker-alt mr-2 text-secondary"></i>
                         Address
                     </label>
-                    <input type="text" id="address" name="address" value="<?php echo $address; ?>" required 
+                    <input type="text" id="address" name="address" value="<?php echo htmlspecialchars($address); ?>" required 
                            class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
                 </div>
 
@@ -382,8 +452,8 @@ mysqli_close($conn);
                             </div>
                         </div>
                         
-                        <input type="checkbox" id="accept" name="accept" 
-                               <?php echo $accept ? 'checked' : ''; ?> style="display: none;">
+                        <!-- Hidden input to store toggle state -->
+                        <input type="hidden" id="accept_status" name="accept_status" value="<?php echo $accept; ?>">
                     </div>
 
                     <!-- Daily Count -->
@@ -489,17 +559,22 @@ mysqli_close($conn);
             }
         });
 
-        // Toggle switch functionality
+        // Toggle switch functionality - FIXED
         function toggleStatus() {
             const toggle = document.querySelector('.toggle-switch');
-            const checkbox = document.getElementById('accept');
+            const hiddenInput = document.getElementById('accept_status');
             const statusIndicator = document.querySelector('.status-indicator');
             const statusText = statusIndicator.nextElementSibling;
             
+            // Toggle the visual state
             toggle.classList.toggle('active');
-            checkbox.checked = !checkbox.checked;
             
-            if (checkbox.checked) {
+            // Update the hidden input value based on toggle state
+            const isActive = toggle.classList.contains('active');
+            hiddenInput.value = isActive ? '1' : '0';
+            
+            // Update status display
+            if (isActive) {
                 statusIndicator.className = 'status-indicator status-active';
                 statusText.className = 'text-sm font-medium text-green-600';
                 statusText.textContent = 'Accepting';
@@ -508,6 +583,8 @@ mysqli_close($conn);
                 statusText.className = 'text-sm font-medium text-red-600';
                 statusText.textContent = 'Not Accepting';
             }
+            
+            console.log('Toggle switched. New value:', hiddenInput.value); // Debug log
         }
 
         // Delete account confirmation
@@ -529,6 +606,9 @@ mysqli_close($conn);
                 this.value = reqPeople;
             }
         });
+        
+        // Debug: Log initial values on page load
+        console.log('Page loaded. Accept status:', <?php echo $accept; ?>);
     </script>
 </body>
 </html>

@@ -6,12 +6,12 @@ $phone = '';
 $donor_email = '';  // Initialize this variable to avoid the undefined variable warning
 
 // Add debugging for session variables
-echo "<script>console.log('Session data: " . json_encode($_SESSION) . "');</script>";
+// echo "<script>console.log('Session data: " . json_encode($_SESSION) . "');</script>";
 
 // Verify user is logged in as a donor
 if (isset($_SESSION['type'])) {
     $type = $_SESSION['type'];
-    echo "<script>console.log('User type: " . $type . "');</script>";
+    // echo "<script>console.log('User type: " . $type . "');</script>";
 
     if ($type == 'doner') {
         $donor_email = $_SESSION['email'];
@@ -19,7 +19,7 @@ if (isset($_SESSION['type'])) {
         $receiver_email = $_SESSION['receiver_email'] ?? '';
         $phone = $_SESSION['phone'] ?? '';
         // Debug the data
-        echo "<script>console.log('Donor: " . $donor_email . ", Receiver: " . ($receiver_email ?? 'not set') . "');</script>";
+        // echo "<script>console.log('Donor: " . $donor_email . ", Receiver: " . ($receiver_email ?? 'not set') . "');</script>";
     } else {
         echo "<script>console.log('User not logged in as donor, redirecting...');</script>";
         echo "<script>alert('Please login as a donor');</script>";
@@ -41,8 +41,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['receiver_name'])) {
     $_SESSION['receiver_phone'] = $_POST['receiver_phone'];
     $_SESSION['receiver_distance'] = $_POST['receiver_distance'];
 
-    echo "<script>console.log('POST data received: " . json_encode($_POST) . "');</script>";
-    echo "<script>console.log('Receiver info set in session');</script>";
+    // echo "<script>console.log('POST data received: " . json_encode($_POST) . "');</script>";
+    // echo "<script>console.log('Receiver info set in session');</script>";
 }
 
 // Function to sanitize input data
@@ -297,7 +297,6 @@ echo "<script>console.log('PHP script execution completed');</script>";
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -312,76 +311,128 @@ echo "<script>console.log('PHP script execution completed');</script>";
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.5.2/css/all.css">
 
     <link rel="stylesheet" href="signup.css">
+
     <style>
-        /* .error-message {
-            color: #e74c3c;
-            font-weight: bold;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .recipient-info {
-            background-color: #f8f9fa;
-            border-left: 4px solid #91c11b;
-            padding: 10px 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-        .recipient-info h4 {
-            margin: 0 0 5px 0;
-            color: #536d10;
-        }
-        .recipient-info p {
-            margin: 5px 0;
-        }
-        .back-button {
-            position: absolute;
-            margin-left: 300px;
-        }
-        .back-button a {
-            color: transparent;
-        }
-        .image-preview img {
-            max-width: 100px;
-            max-height: 100px;
-            margin: 5px;
-            border: 1px solid #ddd;
-            padding: 3px;
-            border-radius: 5px;
+        :root {
+            --primary-color: #17272b;
+            --secondary-color: #ff8a3d;
+            --accent-color: #91c11b;
+            --text-dark: #333;
+            --text-light: #666;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+            --font-family: 'Arial', sans-serif;
         }
 
-        .required-field::after {
-            content: ' *';
-            color: red;
-        } */
+        * {
+            box-sizing: border-box;
+        }
 
-        /* Donation Form Specific Styles */
-        .donation-form {
-            max-width: 800px;
-            margin: 0 auto;
+        body {
+            font-family: var(--font-family);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
             padding: 20px;
-            background-color:#c0392b;
+            margin: 0;
+        }
+
+        /* Form Container */
+        .donation-form {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            padding: 0;
         }
 
         /* Form heading */
         .form-heading {
             font-family: var(--font-family);
-            color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), #2c3e50);
+            color: white;
             text-align: center;
-            margin-bottom: 20px;
-            font-size: 2rem;
+            margin: 0;
+            padding: 30px 20px;
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             position: relative;
-            padding-bottom: 10px;
         }
 
-        .form-heading:after {
-            content: '';
+        /* Back button */
+        .back-button {
             position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 3px;
-            background-color: var(--secondary-color);
+            top: 30px;
+            left: 30px;
+            z-index: 10;
+        }
+
+        .back-button a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+        }
+
+        .back-button a:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* Main form container styling */
+        .donation-form {
+            padding: 0;
+        }
+
+        /* Form content wrapper */
+        /* .form-content-wrapper {
+            padding: 40px;
+            padding-top: 0;
+        } */
+
+        /* Error message styling */
+        .error-message {
+            background-color: #ffe6e6;
+            border-left: 4px solid #e74c3c;
+            color: #c0392b;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            font-weight: 500;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form styling */
+        .form {
+            border-left: 5px solid var(--accent-color) !important;
+            background: #fafafa;
+            padding: 30px !important;
+            border-radius: 20px !important;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .form:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         }
 
         /* Doner-receiver section */
@@ -389,131 +440,166 @@ echo "<script>console.log('PHP script execution completed');</script>";
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 20px;
             width: 100%;
-            margin-top: 2rem;
+            margin-top: 0;
+            margin-bottom: 30px;
             position: relative;
-            /* Ensure positioning context for the arrow */
         }
 
         .doner-receiver .input-wrapper {
             flex: 1;
             position: relative;
+            margin-bottom: 0;
         }
 
-        /* Fix for label visibility - ensure labels appear above inputs */
+        /* Labels - proper positioning and visibility */
         .donation-form .label {
-            position: absolute;
-            top: -10px;
-            /* Move label above the input */
-            left: 10px;
+            display: block !important;
+            position: static !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: none !important;
+            background: transparent !important;
             color: var(--primary-color);
-            background-color: white;
-            padding: 0 5px;
-            font-size: 0.9rem;
-            z-index: 2;
-            pointer-events: none;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            z-index: auto;
+            padding: 0;
         }
 
-        /* Arrow styling fix */
+        /* Specific fixes for donor and recipient labels */
+        .donation-form label[for="receiver_name"],
+        .donation-form label[for="doner_name"] {
+            display: block !important;
+            position: static !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: none !important;
+            background: transparent !important;
+            font-weight: 600;
+            margin-bottom: 8px;
+            z-index: auto;
+        }
+
+        /* Arrow styling */
         .fa-arrow-right-long-to-line {
-            color: var(--primary-color);
-            font-size: 1.5rem;
+            color: var(--accent-color);
+            font-size: 1.8rem;
             display: block;
-            margin: 0 10px;
+            margin: 0 15px;
+            flex-shrink: 0;
         }
 
         /* Input styling */
         .donation-form .input {
-            padding-top: 15px;
-            /* Add padding to accommodate the label */
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            background-color: transparent;
-            color: var(--text-dark);
-            border-radius: 5px;
-            transition: var(--transition);
             width: 100%;
-            height: 50px;
-            /* Increase height to ensure text is visible */
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            background-color: white;
+            color: var(--text-dark);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            height: auto;
         }
 
-        /* Override the CSS that's hiding labels */
+        .donation-form .input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(145, 193, 27, 0.1);
+        }
+
+        /* Remove problematic placeholder and label transitions */
         .donation-form .input::placeholder {
             color: #aaa;
             opacity: 1;
         }
 
-        .donation-form .input:focus+.label,
-        .donation-form .input:not(:placeholder-shown)+.label {
-            transform: none;
-            font-size: 0.9rem;
-            background-color: white;
-            padding: 0 5px;
-            top: -10px;
-            /* Keep label above input when focused */
+        /* Input wrapper styling */
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 25px;
         }
 
-        /* Checkbox and radio styling specific to donation form */
+        /* Checkbox and radio styling - Use existing signup.css styles */
         .donation-form .checkbox,
         .donation-form .radio {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
             margin-top: 10px;
         }
 
+        /* Let signup.css handle the radio and checkbox styling - minimal overrides only */
         .donation-form .checkbox label,
         .donation-form .radio label {
-            min-width: 120px;
-            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
         }
 
-        /* Additional validation section */
-        /* #additionalValidation {
-            width: 100%;
-            background-color: #fafafa;
-            border-radius: var(--border-radius);
-            padding: 15px;
-            margin-bottom: 20px;
-        } */
-
-        /* Image preview section */
-        .image-preview {
+        /* Quantity section styling */
+        .quantity-section {
             display: flex;
+            gap: 20px;
+            align-items: end;
+            margin-bottom: 25px;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
+            justify-content: flex-start;
+        }
+
+        .quantity-section .input-wrapper {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 0;
+        }
+
+        /* Quantity unit display */
+        .quantity_unit {
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
+            border: 2px solid var(--accent-color);
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
         }
 
         /* Select dropdown styling */
         .select {
             appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2391c11b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 1em;
-            padding-right: 2.5rem;
-        }
-
-        /* Quantity unit display */
-        .quantity_unit {
-            background-color: #f0f0f0;
-            padding: 8px 15px;
-            border-radius: var(--border-radius);
-            font-size: 0.9rem;
-            color: var(--primary-color);
-            width: auto;
-            text-align: center;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 50px;
         }
 
         /* File input styling */
         input[type="file"] {
-            border: 1px dashed #ccc;
-            padding: 10px;
+            border: 2px dashed #ccc;
+            padding: 20px;
             border-radius: var(--border-radius);
             width: 100%;
             margin-top: 5px;
+            background: #fafafa;
+            transition: var(--transition);
+        }
+
+        input[type="file"]:hover {
+            border-color: var(--accent-color);
+            background: #f0f8f0;
+        }
+
+        /* Image preview section */
+        .image-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
         }
 
         /* Labels for required fields */
@@ -528,203 +614,216 @@ echo "<script>console.log('PHP script execution completed');</script>";
             font-weight: bold;
         }
 
-        /* Back button position */
-        .back-button {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 10;
+        input[type="checkbox"]:checked + .input-label, input[type="radio"]:checked + .input-label {
+            color: white;
         }
+
 
         /* Submit button enhancement */
         input[type="submit"] {
-            background: linear-gradient(to right, var(--primary-color), #1f3d44);
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--accent-color), #7aa116);
+            color: white;
+            border: none;
+            padding: 15px 40px;
             font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            text-transform: uppercase;
             letter-spacing: 1px;
+            margin-top: 20px;
         }
 
         input[type="submit"]:hover {
-            background: linear-gradient(to right, var(--secondary-color), #ff9f5b);
+            background: linear-gradient(135deg, #7aa116, var(--accent-color));
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 138, 61, 0.3);
+            box-shadow: 0 8px 25px rgba(145, 193, 27, 0.3);
         }
 
-        /* Responsive adjustments specifically for the donation form */
+        /* Small text styling */
+        small {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* Responsive adjustments */
         @media (max-width: 768px) {
             .doner-receiver {
                 flex-direction: column;
+                gap: 15px;
             }
 
-            .donation-form .checkbox label,
-            .donation-form .radio label {
-                min-width: 100px;
+            .doner-receiver .input-wrapper {
+                width: 100%;
+            }
+
+            .fa-arrow-right-long-to-line {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+
+            .quantity-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .quantity_unit {
+                order: -1;
+                text-align: center;
+            }
+
+            .donation-form .checkbox,
+            .donation-form .radio {
+                flex-direction: column;
             }
 
             .back-button {
-                margin-left: 0;
-                top: 10px;
-                left: 10px;
+                top: 20px;
+                left: 20px;
+            }
+
+            /* .form-content-wrapper {
+                padding: 20px;
+            } */
+
+            .form-heading {
+                font-size: 1.8rem;
+                padding: 20px 15px;
             }
         }
 
-        /* Custom styling for the form border */
-        .donation-form .form {
-            border-left: 5px solid var(--accent-color) !important;
-            transition: box-shadow 0.3s ease;
-        }
-
-        .donation-form .form:hover {
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Error message styling */
-        .error-message {
-            background-color: #ffe6e6;
-            border-left: 4px solid #e74c3c;
-            color: #c0392b;
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            font-weight: 500;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
+        @media (max-width: 480px) {
+            .donation-form .checkbox,
+            .donation-form .radio {
+                flex-direction: column;
+                gap: 10px;
             }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Fix for form labels that may be getting hidden due to existing CSS */
-        .donation-form .input-wrapper {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        /* Fix for recipient name label specifically */
-        .donation-form label[for="receiver_name"],
-        .donation-form label[for="doner_name"] {
-            transform: none !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            display: block !important;
-            z-index: 5;
-            font-weight: 600;
         }
     </style>
 </head>
 
 <body>
-    <h3 class="form-heading">Donation Information</h3>
-    <div class="back-button">
-        <a href="search-foodBank.php">
-            <i class="fa-duotone fa-arrow-left" style="--fa-primary-color: #17272b; --fa-primary-opacity: .9; --fa-secondary-color: #91c11b; --fa-secondary-opacity: .7; font-size: 30px;"></i>
-        </a>
-    </div>
+    
+    
     <section class="donation-form">
-        <?php if (!empty($error)): ?>
-            <div class="error-message"><?php echo $error; ?></div>
-        <?php endif; ?>
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" class="form" method="POST" enctype="multipart/form-data" style="border-left: #536d10 5px solid; padding: 10px; border-radius: 20px;">
-            <div class="doner-receiver">
-                <div class="input-wrapper">
-                    <input type="text" class="input" id="doner_name" name="doner_name" value="<?php echo $doner_name; ?>" required>
-                    <label class="label required-field" for="doner_name">Donor Name</label>
-                </div>
-                &nbsp;&nbsp;<i class="fa-regular fa-arrow-right-long-to-line"></i>
-                <div class="input-wrapper">
-                    <input type="text" class="input" id="receiver_name" name="receiver_name"
-                        value="<?php echo isset($_SESSION['receiver_name']) ? $_SESSION['receiver_name'] : ''; ?>" required>
-                    <label for="receiver_name" class="label required-field">Recipient Name</label>
-                </div>
-            </div>
-            <br>
-            <div class="input-wrapper">
-                <label for="donation_type" class="required-field">Type of food being donated:</label>
-                <div class="checkbox" id="checkbox">
-                    <input type="checkbox" name="donation_type[]" value="non-perishable" id="non-perishable" <?php if (isset($_POST['donation_type']) && in_array('non-perishable', $_POST['donation_type'])) echo 'checked'; ?>>
-                    <label for="non-perishable">Non-Perishable</label>
-
-                    <input type="checkbox" name="donation_type[]" value="perishable" id="perishable" <?php if (isset($_POST['donation_type']) && in_array('perishable', $_POST['donation_type'])) echo 'checked'; ?>>
-                    <label for="perishable">Perishable</label>
-
-                    <input type="checkbox" name="donation_type[]" value="baby" id="baby" <?php if (isset($_POST['donation_type']) && in_array('baby', $_POST['donation_type'])) echo 'checked'; ?>>
-                    <label for="baby">Baby Food and Formula</label>
-
-                    <input type="checkbox" name="donation_type[]" value="beverages" id="beverages" <?php if (isset($_POST['donation_type']) && in_array('beverages', $_POST['donation_type'])) echo 'checked'; ?>>
-                    <label for="beverages">Beverages</label><br><br>
-
-                    <input type="checkbox" name="donation_type[]" value="snacks" id="snacks" <?php if (isset($_POST['donation_type']) && in_array('snacks', $_POST['donation_type'])) echo 'checked'; ?>>
-                    <label for="snacks">Snacks and Treats</label>
-                </div><br><br>
-            </div>
-            <div style="display: flex; gap: 30px; align-items: center;align-self: flex-start; ">
-                <div class="input-wrapper">
-                    <input type="text" class="input" id="quantity" name="quantity" style="border-color: transparent; border-bottom: 1px solid black;" value="<?php echo isset($_POST['quantity']) ? $_POST['quantity'] : ''; ?>" required>
-                    <label for="quantity" class="label required-field">Quantity:</label>
-                </div>
-                <input type="hidden" name="quantity_unit_hidden" id="quantity_unit_hidden" value="<?php echo isset($_POST['quantity_unit_hidden']) ? $_POST['quantity_unit_hidden'] : ''; ?>">
-                <p class="quantity_unit">weight/count/volume</p>
-            </div>
-            <div class="input-wrapper">
-                <div id="additionalValidation">
-                    <br>
+        <h3 class="form-heading">Donation Information</h3>
+        <div class="back-button">
+            <a href="search-foodBank.php">
+                <i class="fa-duotone fa-arrow-left" style="--fa-primary-color: #ffffff; --fa-primary-opacity: .9; --fa-secondary-color: #ffffff; --fa-secondary-opacity: .7; font-size: 20px;"></i>
+            </a>
+        </div>
+        <div class="form-content-wrapper">
+            <?php if (!empty($error)): ?>
+                <div class="error-message"><?php echo $error; ?></div>
+            <?php endif; ?>
+            
+            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" class="form" method="POST" enctype="multipart/form-data">
+                <div class="doner-receiver">
                     <div class="input-wrapper">
-                        <input class="input" type="text" id="donation_info" name="donation_info" value="<?php echo isset($_POST['donation_info']) ? $_POST['donation_info'] : ''; ?>" required>
-                        <label class="label required-field" id="info_label" for="donation_info">More Information:</label>
-                    </div><br><br>
-                    <div class="input-wrapper">
-                        <input class="input" type="date" id="expDate" name="expDate" value="<?php echo isset($_POST['expDate']) ? $_POST['expDate'] : ''; ?>" min="<?php echo date('Y-m-d'); ?>" required>
-                        <label class="label required-field" for="expDate">Expiration Date:</label>
-                    </div><br><br>
-                    <div class="input-wrapper">
-                        <label for="damage" class="required-field">Does the packaging have any damage, leaks, or tampering:</label>
-                        <div class="radio" id="radio">
-                            <input type="radio" name="damage" value="yes" id="damage_yes" <?php if (isset($_POST['damage']) && $_POST['damage'] == 'yes') echo 'checked'; ?> required>
-                            <label for="damage_yes">Yes</label>
-                            <input type="radio" name="damage" value="no" id="damage_no" <?php if (isset($_POST['damage']) && $_POST['damage'] == 'no') echo 'checked'; ?>>
-                            <label for="damage_no">No</label>
-                        </div>
-                    </div><br><br>
-                </div>
-                <div class="input-wrapper">
-                    <input class="input" type="date" id="delivary_date" name="delivary_date" value="<?php echo isset($_POST['delivary_date']) ? $_POST['delivary_date'] : ''; ?>" min="<?php echo date('Y-m-d'); ?>" required>
-                    <label for="delivary_date" class="label required-field">Date of delivery/donation:</label>
-                </div><br>
-                <div class="input-wrapper">
-                    <label class="required-field">Is the Food Packaged and Sealed?</label>
-                    <div class="radio" id="packaged">
-                        <input type="radio" name="sealed" value="Yes" id="yes" <?php if (isset($_POST['sealed']) && $_POST['sealed'] == 'Yes') echo 'checked'; ?> required>
-                        <label for="yes">Yes </label>
-                        <input type="radio" name="sealed" value="No" id="no" <?php if (isset($_POST['sealed']) && $_POST['sealed'] == 'No') echo 'checked'; ?>>
-                        <label for="no">No</label>
+                        <label class="label required-field" for="doner_name">Donor Name</label>
+                        <input type="text" class="input" id="doner_name" name="doner_name" value="<?php echo $doner_name; ?>" required>
                     </div>
-                </div><br>
+                    &nbsp;&nbsp;<i class="fa-regular fa-arrow-right-long-to-line" style="margin-top: 50px; margin-left: -20px;"></i>
+                    <div class="input-wrapper">
+                        <label for="receiver_name" class="label required-field">Recipient Name</label>
+                        <input type="text" class="input" id="receiver_name" name="receiver_name"
+                            value="<?php echo isset($_SESSION['receiver_name']) ? $_SESSION['receiver_name'] : ''; ?>" required>
+                    </div>
+                </div>
+
+                <div class="input-wrapper" style="margin-bottom: -10px;">
+                    <label for="donation_type" class="required-field" style="font-size: 0.95rem;">Type of food being donated:</label>
+                    <div class="checkbox" id="checkbox">
+                        <input type="checkbox" name="donation_type[]" value="non-perishable" id="non-perishable" <?php if (isset($_POST['donation_type']) && in_array('non-perishable', $_POST['donation_type'])) echo 'checked'; ?>>
+                        <label class="input-label" for="non-perishable">Non-Perishable</label>
+
+                        <input type="checkbox" name="donation_type[]" value="perishable" id="perishable" <?php if (isset($_POST['donation_type']) && in_array('perishable', $_POST['donation_type'])) echo 'checked'; ?>>
+                        <label class="input-label" for="perishable">Perishable</label>
+
+                        <input type="checkbox" name="donation_type[]" value="baby" id="baby" <?php if (isset($_POST['donation_type']) && in_array('baby', $_POST['donation_type'])) echo 'checked'; ?>>
+                        <label class="input-label" for="baby">Baby Food and Formula</label>
+
+                        <input type="checkbox" name="donation_type[]" value="beverages" id="beverages" <?php if (isset($_POST['donation_type']) && in_array('beverages', $_POST['donation_type'])) echo 'checked'; ?>>
+                        <label class="input-label" for="beverages">Beverages</label><br><br>
+
+                        <input type="checkbox" name="donation_type[]" value="snacks" id="snacks" <?php if (isset($_POST['donation_type']) && in_array('snacks', $_POST['donation_type'])) echo 'checked'; ?>>
+                        <label class="input-label" for="snacks">Snacks and Treats</label>
+                    </div><br><br>
+                </div>
+
+                <div style="display: flex; gap: 30px; align-items: center; align-self: flex-start; ">
+                    <div class="input-wrapper">
+                        <label for="quantity" class="label required-field">Quantity:</label>    
+                        <input type="text" class="input" id="quantity" name="quantity" style="margin-top: 10px;" value="<?php echo isset($_POST['quantity']) ? $_POST['quantity'] : ''; ?>" required>
+                    </div>
+                    <input type="hidden" name="quantity_unit_hidden" id="quantity_unit_hidden" value="<?php echo isset($_POST['quantity_unit_hidden']) ? $_POST['quantity_unit_hidden'] : ''; ?>">
+                    <p class="quantity_unit">weight/count/volume</p>
+                </div>
+
                 <div class="input-wrapper">
-                    <label class="required-field">Delivery Option:</label>
-                    <select name="delivery" id="select" class="select input" autocomplete="off" required>
-                        <option value="" disabled selected>Select delivery option</option>
-                        <option value="deliver to food bank" <?php if (isset($_POST['delivery']) && $_POST['delivery'] == 'deliver to food bank') echo 'selected'; ?>>I can deliver the food to the food bank</option>
-                        <option value="food bank need to pickup" <?php if (isset($_POST['delivery']) && $_POST['delivery'] == 'food bank need to pickup') echo 'selected'; ?>>I need the food bank to arrange for pickup</option>
-                    </select><br><br><br>
+                    <div id="additionalValidation">
+                        <div class="input-wrapper">
+                            <label class="label required-field" id="info_label" for="donation_info">More Information:</label>
+                            <input class="input" type="text" id="donation_info" name="donation_info" value="<?php echo isset($_POST['donation_info']) ? $_POST['donation_info'] : ''; ?>" required>
+                        </div>
+
+                        <div class="input-wrapper">
+                            <label class="label required-field" for="expDate">Expiration Date:</label>
+                            <input class="input" type="date" id="expDate" name="expDate" value="<?php echo isset($_POST['expDate']) ? $_POST['expDate'] : ''; ?>" min="<?php echo date('Y-m-d'); ?>" required>
+                        </div>
+
+                        <div class="input-wrapper">
+                            <label for="damage" class="required-field" style="font-size: 0.95rem;">Does the packaging have any damage, leaks, or tampering:</label>
+                            <div class="radio" id="radio">
+                                <input type="radio" name="damage" value="yes" id="damage_yes" <?php if (isset($_POST['damage']) && $_POST['damage'] == 'yes') echo 'checked'; ?> required>
+                                <label for="damage_yes" class="input-label">Yes</label>
+                                <input type="radio" name="damage" value="no" id="damage_no" <?php if (isset($_POST['damage']) && $_POST['damage'] == 'no') echo 'checked'; ?>>
+                                <label for="damage_no" class="input-label">No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label for="delivary_date" class="label required-field">Date of delivery/donation:</label>
+                        <input class="input" type="date" id="delivary_date" name="delivary_date" value="<?php echo isset($_POST['delivary_date']) ? $_POST['delivary_date'] : ''; ?>" min="<?php echo date('Y-m-d'); ?>" required>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label class="required-field" style="font-size: 0.95rem;">Is the Food Packaged and Sealed?</label>
+                        <div class="radio" id="packaged">
+                            <input type="radio" name="sealed" value="Yes" id="yes" <?php if (isset($_POST['sealed']) && $_POST['sealed'] == 'Yes') echo 'checked'; ?> required>
+                            <label for="yes" class="input-label">Yes </label>
+                            <input type="radio" name="sealed" value="No" id="no" <?php if (isset($_POST['sealed']) && $_POST['sealed'] == 'No') echo 'checked'; ?>>
+                            <label for="no" class="input-label">No</label>
+                        </div>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label class="required-field">Delivery Option:</label>
+                        <select name="delivery" id="select" class="select input" autocomplete="off" required>
+                            <option value="" disabled selected>Select delivery option</option>
+                            <option value="deliver to food bank" <?php if (isset($_POST['delivery']) && $_POST['delivery'] == 'deliver to food bank') echo 'selected'; ?>>I can deliver the food to the food bank</option>
+                            <option value="food bank need to pickup" <?php if (isset($_POST['delivery']) && $_POST['delivery'] == 'food bank need to pickup') echo 'selected'; ?>>I need the food bank to arrange for pickup</option>
+                        </select>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label for="files">Upload Photos of Donation (Optional):</label>
+                        <input type="file" name="files[]" id="files" onchange="previewImages(event)" multiple accept="image/*">
+                        <small>Max 5MB per file. Allowed types: JPG, JPEG, PNG, GIF</small>
+                        <div class="image-preview" id="image-preview"></div>
+                    </div>
+
+                    <input type="submit" id="submit" name="submit_donation" value="Donate">
                 </div>
-                <div class="input-wrapper" style="align-self: flex-start;">
-                    <label for="files">Upload Photos of Donation (Optional):</label>
-                    <input type="file" name="files[]" id="files" onchange="previewImages(event)" multiple accept="image/*">
-                    <small>Max 5MB per file. Allowed types: JPG, JPEG, PNG, GIF</small>
-                    <div class="image-preview" id="image-preview"></div>
-                </div>
-                <br>
-                <input type="submit" id="submit" name="submit_donation" value="Donate"><br><br>
-        </form>
+            </form>
+        </div>
     </section>
+
     <script>
         // Debug utility function
         function debug(message, data = null) {
@@ -963,6 +1062,30 @@ echo "<script>console.log('PHP script execution completed');</script>";
                 }
             }
         });
+
+        function previewImages(event) {
+            const files = event.target.files;
+            const preview = document.getElementById('image-preview');
+            preview.innerHTML = '';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.width = '100px';
+                        img.style.height = '100px';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '8px';
+                        img.style.border = '2px solid #e0e0e0';
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
 
         // Debug any potential issues with the date inputs
         const expDateInput = document.getElementById('expDate');
