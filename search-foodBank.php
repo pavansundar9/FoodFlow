@@ -1,4 +1,9 @@
 <?php
+require_once __DIR__ . '/vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
 session_start();
 // Initialize variables
 $error = $name = "";
@@ -63,7 +68,7 @@ function getLatLongFromAddress($address)
     if (empty($address)) return false;
 
     $formattedAddress = str_replace(' ', '+', $address);
-    $apiKey = 'AIzaSyB6yIQr2JGOVXaDifaI_cE96odWcoNXsPA';
+    $apiKey = $_ENV['GOOGLE_MAPS_API_KEY'];
     $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$formattedAddress}&key={$apiKey}";
 
     $responseJson = file_get_contents($url);
@@ -876,6 +881,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </section>
 
     <script>
+        const GOOGLE_MAPS_API_KEY = "<?php echo $_ENV['GOOGLE_MAPS_API_KEY']; ?>";
+
         // Global variables
         let currentLocation = null;
         let searchResults = [];
@@ -1081,7 +1088,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Reverse geocode coordinates to address
         async function reverseGeocode(lat, lng) {
-            const apiKey = 'AIzaSyB6yIQr2JGOVXaDifaI_cE96odWcoNXsPA';
+            const apiKey = GOOGLE_MAPS_API_KEY;
             const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
 
             try {

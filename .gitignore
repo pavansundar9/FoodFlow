@@ -1,0 +1,19 @@
+# Ignore environment files
+.env
+
+# Ignore Composer dependencies
+/vendor/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/editor files
+.vscode/
+.idea/
+
+# Ignore log files
+*.log
+
+# Ignore uploads (if you don't want to push user-uploaded files)
+uploads/
