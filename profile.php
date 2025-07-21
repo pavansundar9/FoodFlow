@@ -184,7 +184,7 @@ if (isset($_SESSION['type'])) {
                 </a>
             </li>
             <li class="text-xl">
-                <a href="community.html" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                <a href="communitypage.php" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
                     <p class="underline-animation">Community Page</p>
                 </a>
             </li>
@@ -211,7 +211,7 @@ if (isset($_SESSION['type'])) {
                 </a>
             </li>
             <li class="text-xl">
-                <a href="community.html" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
+                <a href="communitypage.php" class="text-white no-underline p-4 block hover:bg-white/10 rounded transition-colors duration-300">
                     <p class="underline-animation">Community Page</p>
                 </a>
             </li>
