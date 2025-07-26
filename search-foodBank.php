@@ -201,8 +201,13 @@ function searchFoodbank($address)
             }
         }
 
-        // Sort food banks by distance (shortest first)
+        // IMPROVED SORTING: First by accepting status (accepting first), then by distance
         usort($foodbanks, function ($a, $b) {
+            // First priority: accepting donations (req_bool = '1' comes first)
+            if ($a['req_bool'] != $b['req_bool']) {
+                return $b['req_bool'] - $a['req_bool']; // '1' comes before '0'
+            }
+            // Second priority: distance (shorter distance comes first)
             return $a['distance'] - $b['distance'];
         });
 
@@ -309,7 +314,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             min-width: 300px;
         }
 
-        .the-details{
+        .the-details {
             margin: 20px;
         }
 
@@ -332,7 +337,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             letter-spacing: 0.5px;
             box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
             display: inline-block;
-            /* margin: 0 auto; */
         }
 
         .org-info {
@@ -424,6 +428,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
+        /* IMPROVED PROGRESS BAR STYLES */
         .capacity-bar-container {
             background: #e9ecef;
             border-radius: 10px;
@@ -431,6 +436,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             height: 12px;
             position: relative;
             border: 1px solid #dee2e6;
+            margin: 10px 0;
+        }
+
+        .capacity-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 9px;
+        }
+
+        .capacity-bar.critical-need {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+        }
+
+        .capacity-bar.high-need {
+            background: linear-gradient(90deg, #fd7e14, #e55a00);
+        }
+
+        .capacity-bar.moderate-need {
+            background: linear-gradient(90deg, #ffc107, #e0a800);
+        }
+
+        .capacity-bar.low-need {
+            background: linear-gradient(90deg, #28a745, #1e7e34);
         }
 
         .capacity-text {
@@ -496,30 +524,142 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
         }
 
+        /* IMPROVED DETAILS PANEL */
         .details-panel {
             display: none;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-top: 20px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+                max-height: 0;
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                max-height: 500px;
+            }
         }
 
         .details-panel h4 {
             color: #2c3e50;
-            margin: 0 0 15px 0;
+            margin: 0 0 25px 0;
+            font-size: 1.3em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .details-panel h4::before {
+            content: '📋';
+            font-size: 1.2em;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            background: #ffffff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .detail-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .detail-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .detail-label {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .detail-value {
+            color: #495057;
             font-size: 1.1em;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        /* Special styling for specific detail types */
+        .detail-item[data-type="capacity"] .detail-value {
+            color: #28a745;
             font-weight: 600;
         }
 
-        .details-panel>div>div {
-            margin: 8px 0;
-            padding: 5px 0;
-            border-bottom: 1px solid #e9ecef;
+        .detail-item[data-type="utilization"] .detail-value {
+            color: #fd7e14;
+            font-weight: 600;
+            font-size: 1.2em;
         }
 
-        .details-panel>div>div:last-child {
-            border-bottom: none;
+        .detail-item[data-type="status"] .detail-value {
+            color: #28a745;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-item[data-type="status"][data-status="not-accepting"] .detail-value {
+            color: #dc3545;
+        }
+
+        .critical-alert {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 5px solid #dc3545;
+            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .critical-alert i {
+            font-size: 1.5em;
+            color: #dc3545;
+        }
+
+        .critical-alert strong {
+            font-weight: 700;
         }
 
         .statistics-summary {
@@ -586,6 +726,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-bottom: 20px;
         }
 
+        /* Urgency badge colors */
+        .critical-need {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .high-need {
+            background: linear-gradient(135deg, #fd7e14, #e55a00);
+            color: white;
+        }
+
+        .moderate-need {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+
+        .low-need {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+
+        .unknown-need {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            color: white;
+        }
+
         @media (max-width: 768px) {
             .foodbank-container {
                 padding: 20px;
@@ -627,12 +793,87 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             .stat-item {
                 min-width: unset;
             }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Remove any centering from .results */
         .results {
             display: block;
-            /* Remove align-items: center; and justify-content: center; if present */
+        }
+
+        /* Stats summary within details */
+        .details-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .details-stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .details-stat-number {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #3498db;
+            display: block;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .details-stat-label {
+            font-size: 0.85em;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            .details-panel {
+                padding: 20px 15px;
+                margin-top: 15px;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .detail-item {
+                padding: 12px 15px;
+            }
+
+            .details-panel h4 {
+                font-size: 1.2em;
+                margin-bottom: 20px;
+            }
+
+            .details-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                padding: 15px;
+            }
+
+            .critical-alert {
+                padding: 15px;
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -711,7 +952,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
 
             <?php
-            // Consistent Food Receiver Card Display Section (UI improved, structure fixed)
+            // Improved Food Receiver Card Display Section
             if (!empty($foodbanks)) {
                 // Calculate statistics
                 $total_receivers = count($foodbanks);
@@ -721,7 +962,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $total_current = 0;
 
                 foreach ($foodbanks as $bank) {
-                    // FIX: Use req_bool for accepting donations count
                     if ($bank['req_bool'] == '1') $accepting_count++;
                     $urgency = getUrgencyLevel($bank['daily_count'], $bank['req_people']);
                     if ($urgency == 'Critical') $critical_count++;
@@ -729,7 +969,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $total_current += $bank['daily_count'];
                 }
 
-                echo "<p class='search-results-header'>Food receivers in <strong>" . htmlspecialchars($state) . "</strong> near you, sorted by distance:</p>";
+                echo "<p class='search-results-header'>Food receivers in <strong>" . htmlspecialchars($state) . "</strong> near you (accepting donations first, sorted by distance):</p>";
 
                 // Statistics summary
                 echo "<div class='statistics-summary'>";
@@ -760,7 +1000,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $capacity_percentage = ($req_people > 0) ? min(($daily_count / $req_people) * 100, 100) : 0;
 
                     // Determine acceptance status
-                    $is_accepting = ($bank['req_bool'] == '1'); // FIX: use req_bool
+                    $is_accepting = ($bank['req_bool'] == '1');
                     $acceptance_class = $is_accepting ? 'accepting' : 'not-accepting';
                     $acceptance_text = $is_accepting ? 'Accepting Donations' : 'Not Accepting Donations';
 
@@ -780,7 +1020,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     </div>
                                 </div>
                                 <div class='badges-container'>";
-                    // FIX: Use req_bool for badges and capacity
+
+                    // Show capacity display only if accepting and has capacity tracking
                     if ($bank['req_bool'] == '1' && $req_people > 0) {
                         echo "<span class='capacity-display'>{$daily_count}/{$req_people}</span>";
                     }
@@ -799,11 +1040,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <p><i class='fas fa-route'></i> {$distance} km away</p>
                         </div>";
 
-                    // Capacity Progress Bar (only show if capacity tracking is enabled)
+                    // Working Progress Bar (only show if capacity tracking is enabled)
                     if ($bank['req_bool'] == '1' && $req_people > 0) {
                         $remaining_capacity = max(0, $req_people - $daily_count);
                         echo "<div class='capacity-bar-container'>
-                                <div class='capacity-bar {$urgency_class}' style='width: {$capacity_percentage}%; height:100%;'></div>
+                                <div class='capacity-bar {$urgency_class}' style='width: {$capacity_percentage}%;'></div>
                               </div>
                               <div class='capacity-text'>
                                 Serving {$daily_count} of {$req_people} people daily
@@ -826,36 +1067,121 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 </button>
                               </form>";
                     }
-                    echo "<button type='button' class='details-btn' onclick='toggleDetails(this)' aria-expanded='false'>
-                            <i class='fas fa-info-circle'></i> More Details
-                          </button>
-                        </div>";
 
-                    // Details Panel (Hidden by default)
-                    echo "<div class='details-panel'>
-                            <h4>Organization Details</h4>
-                            <div>
-                                <div><strong>Type:</strong> {$receiver_type}</div>
-                                <div><strong>User Category:</strong> " . ucfirst($bank['user_type'] ?? 'Not specified') . "</div>";
-                    if ($bank['req_bool'] == '1' && $req_people > 0) {
-                        echo "<div><strong>Daily Capacity:</strong> Up to {$req_people} people</div>
-                              <div><strong>Current Service:</strong> {$daily_count} people daily</div>
-                              <div><strong>Utilization:</strong> " . number_format($capacity_percentage, 1) . "%</div>";
-                        if ($urgency == 'Critical') {
-                            echo "<div style='background:#f8d7da;color:#721c24;padding:10px;border-radius:6px;margin-top:10px;'>
-                                    <strong><i class='fas fa-exclamation-triangle'></i> Critical Status:</strong>
-                                    This organization urgently needs food donations!
-                                  </div>";
-                        }
+                    // Only show More Details button if there's additional info to show
+                    $has_additional_info = !empty($bank['user_type']) ||
+                        ($bank['req_bool'] == '1' && $req_people > 0) ||
+                        $urgency == 'Critical';
+
+                    if ($has_additional_info) {
+                        echo "<button type='button' class='details-btn' onclick='toggleDetails(this)' aria-expanded='false'>
+                                <i class='fas fa-info-circle'></i> More Details
+                              </button>";
                     }
-                    echo "<div><strong>Donation Status:</strong> {$acceptance_text}</div>
-                          <div><strong>Last Updated:</strong> " . date('F j, Y') . "</div>
-                        </div>
-                      </div>";
+                    echo "</div>";
+
+                    // Details Panel (Hidden by default) - Only if has additional info
+                    if ($has_additional_info) {
+                        echo "<div class='details-panel'>
+                                <h4>Organization Details</h4>";
+                        
+                        // Add statistics summary if capacity tracking is enabled
+                        if ($bank['req_bool'] == '1' && $req_people > 0) {
+                            $remaining_capacity = max(0, $req_people - $daily_count);
+                            echo "<div class='details-stats'>
+                                    <div class='details-stat-item'>
+                                        <span class='details-stat-number'>{$req_people}</span>
+                                        <span class='details-stat-label'>Daily Capacity</span>
+                                    </div>
+                                    <div class='details-stat-item'>
+                                        <span class='details-stat-number'>{$daily_count}</span>
+                                        <span class='details-stat-label'>Currently Serving</span>
+                                    </div>
+                                    <div class='details-stat-item'>
+                                        <span class='details-stat-number'>{$remaining_capacity}</span>
+                                        <span class='details-stat-label'>Available Slots</span>
+                                    </div>
+                                    <div class='details-stat-item'>
+                                        <span class='details-stat-number'>" . number_format($capacity_percentage, 1) . "%</span>
+                                        <span class='details-stat-label'>Utilization</span>
+                                    </div>
+                                </div>";
+                        }
+                        
+                        echo "<div class='details-grid'>";
+                        
+                        // Organization Type
+                        echo "<div class='detail-item' data-type='type'>
+                                <span class='detail-label'>Organization Type</span>
+                                <span class='detail-value'>{$receiver_type}</span>
+                            </div>";
+                        
+                        // User Category (if available)
+                        if (!empty($bank['user_type'])) {
+                            echo "<div class='detail-item' data-type='category'>
+                                    <span class='detail-label'>User Category</span>
+                                    <span class='detail-value'>" . ucfirst(htmlspecialchars($bank['user_type'])) . "</span>
+                                </div>";
+                        }
+                        
+                        // Donation Status with proper data attribute
+                        $status_attr = $is_accepting ? 'accepting' : 'not-accepting';
+                        echo "<div class='detail-item' data-type='status' data-status='{$status_attr}'>
+                                <span class='detail-label'>Donation Status</span>
+                                <span class='detail-value'>{$acceptance_text}</span>
+                            </div>";
+                        
+                        // Daily Capacity (if available and accepting)
+                        if ($bank['req_bool'] == '1' && $req_people > 0) {
+                            echo "<div class='detail-item' data-type='capacity'>
+                                    <span class='detail-label'>Daily Capacity</span>
+                                    <span class='detail-value'>Up to {$req_people} people</span>
+                                </div>";
+                            
+                            echo "<div class='detail-item' data-type='service'>
+                                    <span class='detail-label'>Current Service</span>
+                                    <span class='detail-value'>{$daily_count} people daily</span>
+                                </div>";
+                            
+                            echo "<div class='detail-item' data-type='utilization'>
+                                    <span class='detail-label'>Utilization Rate</span>
+                                    <span class='detail-value'>" . number_format($capacity_percentage, 1) . "%</span>
+                                </div>";
+                        }
+                        
+                        // Distance
+                        echo "<div class='detail-item' data-type='distance'>
+                                <span class='detail-label'>Distance from You</span>
+                                <span class='detail-value'>{$distance} kilometers</span>
+                            </div>";
+                        
+                        // Last Updated
+                        echo "<div class='detail-item' data-type='updated'>
+                                <span class='detail-label'>Last Updated</span>
+                                <span class='detail-value'>" . date('F j, Y') . "</span>
+                            </div>";
+                        
+                        echo "</div>"; // End details-grid
+                        
+                        // Critical alert if needed
+                        if ($urgency == 'Critical') {
+                            echo "<div class='critical-alert'>
+                                    <i class='fas fa-exclamation-triangle'></i>
+                                    <div>
+                                        <strong>Critical Status Alert:</strong>
+                                        This organization urgently needs food donations! They are currently serving well below their capacity and need immediate support.
+                                    </div>
+                                </div>";
+                        }
+                        
+                        echo "</div>"; // End details-panel
+                    }
 
                     echo "</div>"; // End foodbank-container
                 }
-            } else if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            }
+            
+            else if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo "<div class='no-results'>
                         <div class='no-results-icon'>
                             <i class='fas fa-search'></i>
@@ -890,6 +1216,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Initialize the application when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
+            attachDynamicEventListeners();
         });
 
         // Initialize the application
@@ -1125,7 +1452,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest' // Optional: helps server identify AJAX requests
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
 
@@ -1186,22 +1513,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Attach event listeners to dynamically loaded content
         function attachDynamicEventListeners() {
-            // Re-attach details toggle buttons
+            // Re-attach details toggle buttons with proper event handling
             const detailButtons = document.querySelectorAll('.details-btn');
             detailButtons.forEach(button => {
-                // Remove any existing listeners to prevent duplicates
-                button.replaceWith(button.cloneNode(true));
-            });
+                // Remove existing onclick attribute if any
+                button.removeAttribute('onclick');
 
-            // Re-attach the toggleDetails function to new buttons
-            const newDetailButtons = document.querySelectorAll('.details-btn');
-            newDetailButtons.forEach(button => {
-                button.addEventListener('click', function() {
+                // Add proper event listener
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
                     toggleDetails(this);
                 });
             });
 
-            // Attach any other dynamic content listeners here
+            // Attach other dynamic content listeners
             attachDonationFormListeners();
             attachImageErrorHandlers();
         }
@@ -1216,12 +1541,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if (receiverName) {
                         console.log(`Initiating donation to: ${receiverName.value}`);
                     }
-
-                    // You can add a confirmation dialog here if needed
-                    // if (!confirm(`Proceed with donation to ${receiverName.value}?`)) {
-                    //     e.preventDefault();
-                    //     return false;
-                    // }
                 });
             });
         }
@@ -1237,30 +1556,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             });
         }
 
-        // Toggle details panel for food receivers
+        // Toggle details panel for food receivers (FUNCTIONAL NOW)
         function toggleDetails(button) {
             const container = button.closest('.foodbank-container');
-            if (!container) return;
+            if (!container) {
+                console.error('Could not find foodbank container');
+                return;
+            }
 
             const detailsPanel = container.querySelector('.details-panel');
-            if (!detailsPanel) return;
+            if (!detailsPanel) {
+                console.error('Could not find details panel');
+                return;
+            }
 
-            const isVisible = detailsPanel.style.display === 'block';
+            const isCurrentlyVisible = detailsPanel.style.display === 'block';
 
-            if (isVisible) {
+            if (isCurrentlyVisible) {
+                // Hide the panel
                 detailsPanel.style.display = 'none';
-                button.textContent = 'More Details';
+                button.innerHTML = '<i class="fas fa-info-circle"></i> More Details';
                 button.setAttribute('aria-expanded', 'false');
             } else {
+                // Show the panel
                 detailsPanel.style.display = 'block';
-                button.textContent = 'Less Details';
+                button.innerHTML = '<i class="fas fa-chevron-up"></i> Less Details';
                 button.setAttribute('aria-expanded', 'true');
 
                 // Smooth scroll to make sure the details are visible
-                detailsPanel.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest'
-                });
+                setTimeout(() => {
+                    detailsPanel.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest'
+                    });
+                }, 100);
             }
         }
 
@@ -1306,10 +1635,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Display location status messages
         function displayLocationStatus(message) {
-            // You can create a status display element or use existing ones
             console.log("Location Status:", message);
-
-            // Optional: Create a temporary status message
             showTemporaryMessage(message, 'info');
         }
 
@@ -1389,76 +1715,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     setTimeout(() => messageDiv.remove(), 300);
                 }
             }, 5000);
-        }
-
-        // Utility function to format distance
-        function formatDistance(distance) {
-            if (distance < 1) {
-                return (distance * 1000).toFixed(0) + 'm';
-            } else {
-                return distance.toFixed(1) + 'km';
-            }
-        }
-
-        // Utility function to validate email
-        function validateEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
-
-        // Utility function to validate phone number
-        function validatePhone(phone) {
-            const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,}$/;
-            return phoneRegex.test(phone);
-        }
-
-        // Enhanced error handling for the entire application
-        window.addEventListener('error', function(e) {
-            console.error('Global error caught:', e.error);
-            // You can send error reports to your server here if needed
-        });
-
-        // Handle unhandled promise rejections
-        window.addEventListener('unhandledrejection', function(e) {
-            console.error('Unhandled promise rejection:', e.reason);
-            e.preventDefault(); // Prevent the default browser console error
-        });
-
-        // Optional: Add keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            // Alt + S for search
-            if (e.altKey && e.key === 's') {
-                e.preventDefault();
-                const addressInput = document.getElementById('addressInput');
-                if (addressInput) {
-                    addressInput.focus();
-                }
-            }
-
-            // Alt + L for location
-            if (e.altKey && e.key === 'l') {
-                e.preventDefault();
-                getUserLocation();
-            }
-
-            // Escape to close details panels
-            if (e.key === 'Escape') {
-                const openPanels = document.querySelectorAll('.details-panel[style*="display: block"]');
-                openPanels.forEach(panel => {
-                    const button = panel.parentNode.querySelector('.details-btn');
-                    if (button) {
-                        toggleDetails(button);
-                    }
-                });
-            }
-        });
-
-        // Performance monitoring (optional)
-        if ('performance' in window) {
-            window.addEventListener('load', function() {
-                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-                console.log(`Page load time: ${loadTime}ms`);
-            });
         }
 
         // Initialize everything when the script loads

@@ -23,9 +23,62 @@ if (!$conn) {
 $email = $_SESSION['email'];
 $type = $_SESSION['type'];
 $name = $phone = $address = $error = $success = "";
-$accept = 0; // Default to 0
+$image_path = "";
+
+// Donor specific variables
+$doner_type = $typical_donation = $delivery = "";
+
+// Receiver specific variables
+$accept = 0;
 $daily_count = 0;
 $req_people = 0;
+$receiver_type = "";
+
+// Function to delete old image
+function deleteOldImage($imagePath) {
+    if (!empty($imagePath) && file_exists($imagePath) && $imagePath !== 'images/default-profile.png') {
+        unlink($imagePath);
+    }
+}
+
+// Function to handle image upload
+function handleImageUpload($currentImagePath) {
+    if (!isset($_FILES['profile_image']) || $_FILES['profile_image']['error'] === UPLOAD_ERR_NO_FILE) {
+        return $currentImagePath; // No new image uploaded, keep current
+    }
+    
+    $uploadDir = 'uploads/profiles/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    
+    $file = $_FILES['profile_image'];
+    $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    $maxSize = 5 * 1024 * 1024; // 5MB
+    
+    // Validate file
+    if (!in_array($file['type'], $allowedTypes)) {
+        throw new Exception("Invalid file type. Only JPG, PNG, and GIF are allowed.");
+    }
+    
+    if ($file['size'] > $maxSize) {
+        throw new Exception("File size too large. Maximum 5MB allowed.");
+    }
+    
+    // Generate unique filename
+    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $filename = uniqid('profile_') . '.' . $extension;
+    $uploadPath = $uploadDir . $filename;
+    
+    // Move uploaded file
+    if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+        // Delete old image if it exists and is not default
+        deleteOldImage($currentImagePath);
+        return $uploadPath;
+    } else {
+        throw new Exception("Failed to upload image.");
+    }
+}
 
 // Fetch user details
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
@@ -40,17 +93,17 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $name = $row['name'];
         $phone = $row['phone'];
         $address = $row['address'];
+        $image_path = $row['image_path'] ?? '';
         
-        // FIX 1: Only fetch foodreceiver-specific fields if user is a foodreceiver
-        if ($type == 'foodreceiver') {
-            // Ensure we're getting the correct boolean value from database
+        if ($type == 'doner') {
+            $doner_type = $row['doner_type'] ?? '';
+            $typical_donation = $row['typical_donation'] ?? '';
+            $delivery = $row['delivary'] ?? ''; // Note: typo in column name
+        } else {
+            $receiver_type = $row['receiver_type'] ?? '';
             $accept = isset($row['req_bool']) ? (int)$row['req_bool'] : 0;
             $daily_count = isset($row['daily_count']) ? (int)$row['daily_count'] : 0;
             $req_people = isset($row['req_people']) ? (int)$row['req_people'] : 0;
-            
-            // Debug log to verify values being fetched
-            error_log("GET - User: $email - req_bool from DB: " . ($row['req_bool'] ?? 'NULL'));
-            error_log("GET - User: $email - accept value set to: $accept");
         }
     } else {
         $error = "User data not found.";
@@ -65,87 +118,97 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $address = htmlspecialchars(trim($_POST['address']));
 
     if (empty($name) || empty($phone) || empty($address)) {
-        $error = "All fields are required.";
+        $error = "Name, phone, and address are required.";
     } else {
-        $table = ($type == 'doner') ? 'fooddoners' : 'foodreceivers';
-        
-        if ($type == 'foodreceiver') {
-            // FIX 2: Properly handle the accept status from POST data
-            if (isset($_POST['accept_status'])) {
-                $accept = ($_POST['accept_status'] === '1') ? 1 : 0;
-            } else {
-                // FIX 3: If not provided, fetch current value from database
-                $current_sql = "SELECT req_bool FROM $table WHERE email = ?";
-                $current_stmt = mysqli_prepare($conn, $current_sql);
-                mysqli_stmt_bind_param($current_stmt, "s", $email);
-                mysqli_stmt_execute($current_stmt);
-                $current_result = mysqli_stmt_get_result($current_stmt);
+        try {
+            $table = ($type == 'doner') ? 'fooddoners' : 'foodreceivers';
+            
+            // Handle image upload
+            $newImagePath = handleImageUpload($image_path);
+            
+            if ($type == 'doner') {
+                $doner_type = htmlspecialchars(trim($_POST['doner_type'] ?? ''));
+                $typical_donation = htmlspecialchars(trim($_POST['typical_donation'] ?? ''));
+                $delivery = htmlspecialchars(trim($_POST['delivery'] ?? ''));
                 
-                if ($current_row = mysqli_fetch_assoc($current_result)) {
-                    $accept = isset($current_row['req_bool']) ? (int)$current_row['req_bool'] : 0;
+                $sql = "UPDATE $table SET name = ?, phone = ?, address = ?, doner_type = ?, typical_donation = ?, delivary = ?, image_path = ? WHERE email = ?";
+                $stmt = mysqli_prepare($conn, $sql);
+                if (!$stmt) {
+                    throw new Exception("Prepare statement failed: " . mysqli_error($conn));
+                }
+                mysqli_stmt_bind_param($stmt, "ssssssss", $name, $phone, $address, $doner_type, $typical_donation, $delivery, $newImagePath, $email);
+                
+            } else {
+                $receiver_type = htmlspecialchars(trim($_POST['receiver_type'] ?? ''));
+                $req_people = intval($_POST['req_people'] ?? 0);
+                
+                // Handle accept status
+                if (isset($_POST['accept_status'])) {
+                    $accept = ($_POST['accept_status'] === '1') ? 1 : 0;
                 } else {
-                    $accept = 0; // Default if no record found
-                }
-                mysqli_stmt_close($current_stmt);
-            }
-            
-            $daily_count = intval($_POST['daily_count'] ?? 0);
-            
-            // Debug logging
-            error_log("POST - User: $email - accept_status from form: " . ($_POST['accept_status'] ?? 'NOT SET'));
-            error_log("POST - User: $email - Final accept value: $accept");
-            
-            // FIX 4: Update query with proper parameter binding
-            $sql = "UPDATE $table SET name = ?, phone = ?, address = ?, req_bool = ?, daily_count = ? WHERE email = ?";
-            $stmt = mysqli_prepare($conn, $sql);
-            if (!$stmt) {
-                $error = "Prepare statement failed: " . mysqli_error($conn);
-            } else {
-                mysqli_stmt_bind_param($stmt, "sssiis", $name, $phone, $address, $accept, $daily_count, $email);
-            }
-        } else {
-            // For donors, only update basic info
-            $sql = "UPDATE $table SET name = ?, phone = ?, address = ? WHERE email = ?";
-            $stmt = mysqli_prepare($conn, $sql);
-            if (!$stmt) {
-                $error = "Prepare statement failed: " . mysqli_error($conn);
-            } else {
-                mysqli_stmt_bind_param($stmt, "ssss", $name, $phone, $address, $email);
-            }
-        }
-
-        // Execute the update if statement was prepared successfully
-        if (isset($stmt) && mysqli_stmt_execute($stmt)) {
-            $success = "Profile updated successfully! 🎉";
-            
-            // FIX 5: Re-fetch updated data to ensure display shows correct values
-            $fetch_sql = "SELECT * FROM $table WHERE email = ?";
-            $fetch_stmt = mysqli_prepare($conn, $fetch_sql);
-            mysqli_stmt_bind_param($fetch_stmt, "s", $email);
-            mysqli_stmt_execute($fetch_stmt);
-            $fetch_result = mysqli_stmt_get_result($fetch_stmt);
-            
-            if ($fetch_row = mysqli_fetch_assoc($fetch_result)) {
-                $name = $fetch_row['name'];
-                $phone = $fetch_row['phone'];
-                $address = $fetch_row['address'];
-                
-                if ($type == 'foodreceiver') {
-                    $accept = (int)$fetch_row['req_bool'];
-                    $daily_count = (int)$fetch_row['daily_count'];
-                    $req_people = (int)$fetch_row['req_people'];
+                    $current_sql = "SELECT req_bool FROM $table WHERE email = ?";
+                    $current_stmt = mysqli_prepare($conn, $current_sql);
+                    mysqli_stmt_bind_param($current_stmt, "s", $email);
+                    mysqli_stmt_execute($current_stmt);
+                    $current_result = mysqli_stmt_get_result($current_stmt);
                     
-                    error_log("REFETCH - User: $email - Updated accept value: $accept");
+                    if ($current_row = mysqli_fetch_assoc($current_result)) {
+                        $accept = isset($current_row['req_bool']) ? (int)$current_row['req_bool'] : 0;
+                    } else {
+                        $accept = 0;
+                    }
+                    mysqli_stmt_close($current_stmt);
                 }
+                
+                $daily_count = intval($_POST['daily_count'] ?? 0);
+                
+                $sql = "UPDATE $table SET name = ?, phone = ?, address = ?, receiver_type = ?, req_bool = ?, req_people = ?, daily_count = ?, image_path = ? WHERE email = ?";
+                $stmt = mysqli_prepare($conn, $sql);
+                if (!$stmt) {
+                    throw new Exception("Prepare statement failed: " . mysqli_error($conn));
+                }
+                mysqli_stmt_bind_param($stmt, "ssssiiiss", $name, $phone, $address, $receiver_type, $accept, $req_people, $daily_count, $newImagePath, $email);
             }
-            mysqli_stmt_close($fetch_stmt);
+
+            // Execute the update
+            if (mysqli_stmt_execute($stmt)) {
+                $success = "Profile updated successfully! 🎉";
+                $image_path = $newImagePath; // Update the display path
+                
+                // Re-fetch updated data
+                $fetch_sql = "SELECT * FROM $table WHERE email = ?";
+                $fetch_stmt = mysqli_prepare($conn, $fetch_sql);
+                mysqli_stmt_bind_param($fetch_stmt, "s", $email);
+                mysqli_stmt_execute($fetch_stmt);
+                $fetch_result = mysqli_stmt_get_result($fetch_stmt);
+                
+                if ($fetch_row = mysqli_fetch_assoc($fetch_result)) {
+                    $name = $fetch_row['name'];
+                    $phone = $fetch_row['phone'];
+                    $address = $fetch_row['address'];
+                    $image_path = $fetch_row['image_path'];
+                    
+                    if ($type == 'doner') {
+                        $doner_type = $fetch_row['doner_type'];
+                        $typical_donation = $fetch_row['typical_donation'];
+                        $delivery = $fetch_row['delivary'];
+                    } else {
+                        $receiver_type = $fetch_row['receiver_type'];
+                        $accept = (int)$fetch_row['req_bool'];
+                        $daily_count = (int)$fetch_row['daily_count'];
+                        $req_people = (int)$fetch_row['req_people'];
+                    }
+                }
+                mysqli_stmt_close($fetch_stmt);
+                
+            } else {
+                throw new Exception("Error updating profile: " . mysqli_error($conn));
+            }
             
-        } elseif (isset($stmt)) {
-            $error = "Error updating profile: " . mysqli_error($conn);
-        }
-        
-        if (isset($stmt)) {
             mysqli_stmt_close($stmt);
+            
+        } catch (Exception $e) {
+            $error = $e->getMessage();
         }
     }
 }
@@ -280,6 +343,45 @@ mysqli_close($conn);
             box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
         }
 
+        .image-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+            object-fit: cover;
+            border: 4px solid #c8ed6c;
+            transition: all 0.3s ease;
+        }
+
+        .image-preview:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .image-upload-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .image-upload-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+
+        .image-upload-container:hover .image-upload-overlay {
+            opacity: 1;
+        }
+
         @media (max-width: 1023px) {
             .desktop-sidebar {
                 display: none;
@@ -389,44 +491,156 @@ mysqli_close($conn);
 
         <!-- Main Form -->
         <div class="fade-in-up">
-            <form method="POST" action="settings.php" class="form-card p-8 rounded-2xl shadow-lg w-full max-w-2xl">
-                <h2 class="text-2xl font-semibold mb-6 text-primary flex items-center">
-                    <i class="fas fa-user-edit mr-3 text-accent"></i>
-                    Personal Information
-                </h2>
-
-                <!-- Name Field -->
-                <div class="mb-6">
-                    <label for="name" class="block text-sm font-semibold mb-2 text-gray-700 flex items-center">
-                        <i class="fas fa-user mr-2 text-secondary"></i>
-                        Full Name
-                    </label>
-                    <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($name); ?>" required 
-                           class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
+            <form method="POST" action="settings.php" enctype="multipart/form-data" class="form-card p-8 rounded-2xl shadow-lg w-full max-w-4xl">
+                
+                <!-- Profile Image Section -->
+                <div class="mb-8 text-center">
+                    <h2 class="text-2xl font-semibold mb-6 text-primary flex flex-start justify-center">
+                        <i class="fas fa-user-edit mr-3 text-accent"></i>
+                        Profile Information
+                    </h2>
+                    
+                    <div class="image-upload-container mb-4">
+                        <img src="<?php echo (!empty($image_path) && file_exists($image_path)) ? htmlspecialchars($image_path) : 'images/default-profile.png'; ?>" 
+                            alt="Profile Picture" class="image-preview mx-auto" id="imagePreview" 
+                            onerror="this.src='images/default-profile.png';">
+                        <div class="image-upload-overlay" onclick="document.getElementById('profile_image').click()">
+                            <i class="fas fa-camera text-white text-2xl"></i>
+                        </div>
+                    </div>
+                    
+                    <input type="file" id="profile_image" name="profile_image" accept="image/*" class="hidden" onchange="previewImage(this)">
+                    <p class="text-sm text-gray-500 mb-2">Click on image to change</p>
+                    <p class="text-xs text-gray-400">Max size: 5MB | Formats: JPG, PNG, GIF</p>
                 </div>
 
-                <!-- Phone Field -->
-                <div class="mb-6">
-                    <label for="phone" class="block text-sm font-semibold mb-2 text-gray-700 flex items-center">
-                        <i class="fas fa-phone mr-2 text-secondary"></i>
-                        Contact Number
-                    </label>
-                    <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($phone); ?>" required 
-                           class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
+                <!-- Personal Information -->
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Name Field -->
+                    <div>
+                        <label for="name" class="block text-sm font-semibold mb-2 text-gray-700 flex items-center">
+                            <i class="fas fa-user mr-2 text-secondary"></i>
+                            Full Name
+                        </label>
+                        <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($name); ?>" required 
+                               class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
+                    </div>
+
+                    <!-- Phone Field -->
+                    <div>
+                        <label for="phone" class="block text-sm font-semibold mb-2 text-gray-700 flex items-center">
+                            <i class="fas fa-phone mr-2 text-secondary"></i>
+                            Contact Number
+                        </label>
+                        <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($phone); ?>" required 
+                               class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
+                    </div>
                 </div>
 
                 <!-- Address Field -->
-                <div class="mb-6">
+                <div class="mb-8">
                     <label for="address" class="block text-sm font-semibold mb-2 text-gray-700 flex items-center">
                         <i class="fas fa-map-marker-alt mr-2 text-secondary"></i>
                         Address
                     </label>
-                    <input type="text" id="address" name="address" value="<?php echo htmlspecialchars($address); ?>" required 
-                           class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
+                    <textarea id="address" name="address" required rows="3"
+                              class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300"><?php echo htmlspecialchars($address); ?></textarea>
                 </div>
 
-                <!-- Receiver Fields -->
+                <!-- Donor Specific Fields -->
+                <?php if ($type == 'doner') : ?>
+                    <h2 class="text-2xl font-semibold mb-6 text-primary flex items-center">
+                        <i class="fas fa-heart mr-3 text-red-500"></i>
+                        Donor Preferences
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Donor Type -->
+                        <div>
+                            <label for="doner_type" class="block text-sm font-semibold mb-2 text-gray-700 flex items-center">
+                                <i class="fas fa-tags mr-2 text-secondary"></i>
+                                Donor Type
+                            </label>
+                            <select id="doner_type" name="doner_type" 
+                                    class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
+                                <option value="">Select Type</option>
+                                <option value="individual" <?php echo $doner_type == 'individual' ? 'selected' : ''; ?>>Individual</option>
+                                <option value="restaurant" <?php echo $doner_type == 'restaurant' ? 'selected' : ''; ?>>Restaurant</option>
+                                <option value="hotel" <?php echo $doner_type == 'hotel' ? 'selected' : ''; ?>>Hotel</option>
+                                <option value="catering" <?php echo $doner_type == 'catering' ? 'selected' : ''; ?>>Catering Service</option>
+                                <option value="grocery" <?php echo $doner_type == 'grocery' ? 'selected' : ''; ?>>Grocery Store</option>
+                                <option value="event" <?php echo $doner_type == 'event' ? 'selected' : ''; ?>>Event Organizer</option>
+                            </select>
+                        </div>
+
+                        <!-- Delivery Option -->
+                        <div>
+                            <label for="delivery" class="block text-sm font-semibold mb-2 text-gray-700 flex items-center">
+                                <i class="fas fa-truck mr-2 text-secondary"></i>
+                                Delivery Option
+                            </label>
+                            <select id="delivery" name="delivery" 
+                                    class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
+                                <option value="">Select Option</option>
+                                <option value="pickup" <?php echo $delivery == 'pickup' ? 'selected' : ''; ?>>Pickup Only</option>
+                                <option value="delivery" <?php echo $delivery == 'delivery' ? 'selected' : ''; ?>>Can Deliver</option>
+                                <option value="both" <?php echo $delivery == 'both' ? 'selected' : ''; ?>>Both Options</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Typical Donation -->
+                    <div class="mb-8">
+                        <label for="typical_donation" class="block text-sm font-semibold mb-2 text-gray-700 flex items-center">
+                            <i class="fas fa-utensils mr-2 text-secondary"></i>
+                            Typical Donation
+                        </label>
+                        <textarea id="typical_donation" name="typical_donation" rows="3" placeholder="Describe the type of food you typically donate..."
+                                  class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300"><?php echo htmlspecialchars($typical_donation); ?></textarea>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Receiver Specific Fields -->
                 <?php if ($type == 'foodreceiver') : ?>
+                    <h2 class="text-2xl font-semibold mb-6 text-primary flex items-center">
+                        <i class="fas fa-hands-helping mr-3 text-blue-500"></i>
+                        Receiver Information
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Receiver Type -->
+                        <div>
+                            <label for="receiver_type" class="block text-sm font-semibold mb-2 text-gray-700 flex items-center">
+                                <i class="fas fa-building mr-2 text-secondary"></i>
+                                Organization Type
+                            </label>
+                            <select id="receiver_type" name="receiver_type" 
+                                    class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
+                                <option value="">Select Type</option>
+                                <option value="ngo" <?php echo $receiver_type == 'ngo' ? 'selected' : ''; ?>>NGO</option>
+                                <option value="shelter" <?php echo $receiver_type == 'shelter' ? 'selected' : ''; ?>>Shelter</option>
+                                <option value="orphanage" <?php echo $receiver_type == 'orphanage' ? 'selected' : ''; ?>>Orphanage</option>
+                                <option value="elderly_home" <?php echo $receiver_type == 'elderly_home' ? 'selected' : ''; ?>>Elderly Home</option>
+                                <option value="community_center" <?php echo $receiver_type == 'community_center' ? 'selected' : ''; ?>>Community Center</option>
+                                <option value="individual" <?php echo $receiver_type == 'individual' ? 'selected' : ''; ?>>Individual</option>
+                                <option value="food_bank" <?php echo $receiver_type == 'food_bank' ? 'selected' : ''; ?>>Food Bank</option>
+                                <option value="religious_org" <?php echo $receiver_type == 'religious_org' ? 'selected' : ''; ?>>Religious Organization</option>
+                            </select>
+                        </div>
+
+                        <!-- Required People -->
+                        <div>
+                            <label for="req_people" class="block text-sm font-semibold mb-2 text-gray-700 flex items-center">
+                                <i class="fas fa-users mr-2 text-secondary"></i>
+                                People Served Daily
+                            </label>
+                            <input type="number" id="req_people" name="req_people" value="<?php echo $req_people; ?>" 
+                                   min="0" max="1000"
+                                   class="w-full border-2 border-gray-200 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all duration-300">
+                        </div>
+                    </div>
+
                     <!-- Donation Status -->
                     <div class="mb-6 p-6 bg-gradient-to-r from-accent/10 to-accent/20 rounded-xl border-2 border-accent/30">
                         <div class="flex items-center justify-between mb-4">
@@ -509,7 +723,7 @@ mysqli_close($conn);
 
         <!-- Delete Account Section -->
         <div class="fade-in-up mt-8">
-            <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-6 max-w-2xl">
+            <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-6 max-w-4xl">
                 <h3 class="text-lg font-semibold mb-4 text-red-800 flex items-center">
                     <i class="fas fa-exclamation-triangle mr-3 text-red-600"></i>
                     Danger Zone
@@ -517,7 +731,7 @@ mysqli_close($conn);
                 
                 <div class="bg-white/70 rounded-lg p-4 mb-4">
                     <p class="text-red-600 text-sm mb-3">
-                        Once you delete your account, there is no going back. This action will permanently remove all your data.
+                        Once you delete your account, there is no going back. This action will permanently remove all your data, including your profile information, donation history, and uploaded images.
                     </p>
                     
                     <button onclick="confirmDelete()" class="bg-red-700 text-white px-6 py-3 rounded-lg hover:bg-red-800 transition-all duration-300 inline-flex items-center shadow-md hover:shadow-lg">
@@ -559,7 +773,21 @@ mysqli_close($conn);
             }
         });
 
-        // Toggle switch functionality - FIXED
+        // Image preview functionality
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Toggle switch functionality for receivers
+        <?php if ($type == 'foodreceiver') : ?>
         function toggleStatus() {
             const toggle = document.querySelector('.toggle-switch');
             const hiddenInput = document.getElementById('accept_status');
@@ -584,19 +812,7 @@ mysqli_close($conn);
                 statusText.textContent = 'Not Accepting';
             }
             
-            console.log('Toggle switched. New value:', hiddenInput.value); // Debug log
-        }
-
-        // Delete account confirmation
-        function confirmDelete() {
-            if (confirm('Are you absolutely sure you want to delete your account?\n\nThis action cannot be undone and will permanently remove all your data.')) {
-                const finalConfirm = prompt('Please type "DELETE" to confirm account deletion:');
-                if (finalConfirm === 'DELETE') {
-                    window.location.href = 'delete_account.php';
-                } else if (finalConfirm !== null) {
-                    alert('Account deletion cancelled - text did not match "DELETE".');
-                }
-            }
+            // console.log('Toggle switched. New value:', hiddenInput.value);
         }
 
         // Daily count validation
@@ -606,9 +822,71 @@ mysqli_close($conn);
                 this.value = reqPeople;
             }
         });
+
+        // Update max value when req_people changes
+        document.getElementById('req_people')?.addEventListener('input', function() {
+            const dailyCountInput = document.getElementById('daily_count');
+            if (dailyCountInput) {
+                dailyCountInput.max = this.value;
+                if (parseInt(dailyCountInput.value) > parseInt(this.value)) {
+                    dailyCountInput.value = this.value;
+                }
+            }
+        });
+        <?php endif; ?>
+
+        // Delete account confirmation
+        function confirmDelete() {
+            if (confirm('Are you absolutely sure you want to delete your account?\n\nThis action cannot be undone and will permanently remove all your data including:\n- Profile information\n- Donation history\n- Uploaded images\n- All associated records')) {
+                const finalConfirm = prompt('Please type "DELETE" to confirm account deletion:');
+                if (finalConfirm === 'DELETE') {
+                    window.location.href = 'delete_account.php';
+                } else if (finalConfirm !== null) {
+                    alert('Account deletion cancelled - text did not match "DELETE".');
+                }
+            }
+        }
+
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+            
+            if (!name || !phone || !address) {
+                e.preventDefault();
+                alert('Please fill in all required fields (Name, Phone, Address).');
+                return false;
+            }
+            
+            // Phone number validation (basic)
+            const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+            if (!phoneRegex.test(phone)) {
+                e.preventDefault();
+                alert('Please enter a valid phone number.');
+                return false;
+            }
+            
+            <?php if ($type == 'foodreceiver') : ?>
+            const reqPeople = parseInt(document.getElementById('req_people').value);
+            const dailyCount = parseInt(document.getElementById('daily_count').value);
+            
+            if (reqPeople < 0 || dailyCount < 0) {
+                e.preventDefault();
+                alert('Please enter valid positive numbers for people counts.');
+                return false;
+            }
+            
+            if (dailyCount > reqPeople && reqPeople > 0) {
+                e.preventDefault();
+                alert('Daily count cannot exceed the total number of people served.');
+                return false;
+            }
+            <?php endif; ?>
+            
+            return true;
+        });
         
-        // Debug: Log initial values on page load
-        console.log('Page loaded. Accept status:', <?php echo $accept; ?>);
     </script>
 </body>
 </html>

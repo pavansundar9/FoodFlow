@@ -15,8 +15,8 @@
     if(isset($_SESSION['type'])) {
         $type = $_SESSION['type'];
         // Debug session data
-        echo "<script>console.log('Session type: " . $type . "');</script>";
-        echo "<script>console.log('Session email: " . $_SESSION['email'] . "');</script>";
+        // echo "<script>console.log('Session type: " . $type . "');</script>";
+        // echo "<script>console.log('Session email: " . $_SESSION['email'] . "');</script>";
         if ($type == 'doner') {
             $doner_email = $_SESSION['email'];
             $doner_name = $_SESSION['name'];
@@ -36,7 +36,7 @@
 
         // $sql ="SELECT * FROM $table";
         $result = mysqli_query($conn, $sql);
-        echo "<script>console.log('SQL Query: " . $sql . "');</script>";
+        // echo "<script>console.log('SQL Query: " . $sql . "');</script>";
 
         if ($result && mysqli_num_rows($result) > 0) {
             $row = mysqli_fetch_assoc($result);
@@ -89,9 +89,9 @@
                     <div class="user-icon">
                     <?php 
                         if(isset($image_path)) {
-                            echo "<script>console.log('Using image path: " . $image_path . "');</script>";
+                            // echo "<script>console.log('Using image path: " . $image_path . "');</script>";
                         } else {
-                            echo "<script>console.log('Using default image path');</script>";
+                            // echo "<script>console.log('Using default image path');</script>";
                         }
                     ?>
                     <img src="

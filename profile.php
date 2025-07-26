@@ -19,7 +19,7 @@ $image_path = $name = $phone = $address = $user_type = $daily_count = $req_bool 
 $default_image = 'uploads/food-bank-logo.png';
 
 if (isset($_SESSION['type'])) {
-    echo "<script>console.log('The session type is, " . $_SESSION['type'] . "');</script>";
+    // echo "<script>console.log('The session type is, " . $_SESSION['type'] . "');</script>";
     if ($_SESSION['type'] == 'foodreceiver') {
         $sql = "SELECT * FROM foodreceivers WHERE email = '$email'";
     } elseif ($_SESSION['type'] == 'doner') {
@@ -29,7 +29,7 @@ if (isset($_SESSION['type'])) {
 
     if ($result && mysqli_num_rows($result) > 0) {
         $row = mysqli_fetch_assoc($result);
-        echo "<script>console.log('The data fetched is, " . json_encode($row) . "');</script>";
+        // echo "<script>console.log('The data fetched is, " . json_encode($row) . "');</script>";
 
         // Common fields
         $name = $row['name'];
@@ -53,7 +53,7 @@ if (isset($_SESSION['type'])) {
             $delivery = $row['delivary'];
         }
     } else {
-        echo '<script>console.log("No records found.");</script>';
+        // echo '<script>console.log("No records found.");</script>';
     }
 }
 ?>
@@ -235,7 +235,7 @@ if (isset($_SESSION['type'])) {
             <img src="<?php echo $final_image; ?>" alt="Profile Image" class="rounded-xl w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 object-cover sm:mr-5 mb-4 sm:mb-0 border-4 border-accent shadow-custom">
             <div class="flex flex-col text-center sm:text-left">
                 <p class="font-bold text-xl sm:text-2xl mb-2 text-primary"><?php echo $name; ?>
-                    <span class="text-secondary text-sm italic bg-secondary/10 w-min px-3 py-1 rounded-full inline-block">
+                    <span class="text-secondary text-sm italic bg-secondary/10 px-3 py-1 rounded-full inline-block whitespace-nowrap">
                         <?php echo ($user_type == 'foodreceiver') ? 'Food Receiver' : 'Donor'; ?>
                     </span>
                 </p>

@@ -422,7 +422,7 @@ if (isset($_SESSION['type'])) {
                 </a>
             </li>
             <li class="text-xl">
-                <a href="community.html" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
+                <a href="communitypage.php" class="text-white no-underline p-3 block hover:bg-white/10 rounded transition-colors duration-300">
                     <p class="underline-animation">Community Page</p>
                 </a>
             </li>
@@ -514,9 +514,18 @@ if (isset($_SESSION['type'])) {
                 <i class="fas fa-heart text-secondary"></i>
                 My Donations
             </h1>
-            <div class="text-sm text-gray-500">
-                <i class="fas fa-clock mr-1"></i>
-                Last updated: <?php echo date('M j, Y'); ?>
+           <div class="flex items-center gap-4">
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-clock mr-1"></i>
+                    Last updated: <?php echo date('M j, Y'); ?>
+                </div>
+                <?php if ($type == 'doner' && mysqli_num_rows($donations_result) > 0): ?>
+                <button onclick="window.location.href='search-foodBank.php'" 
+                    class="bg-secondary hover:bg-secondary/90 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center gap-2">
+                    <i class="fas fa-plus"></i>
+                    New Donation
+                </button>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -541,15 +550,15 @@ if (isset($_SESSION['type'])) {
                 <div class="text-sm text-gray-600">Total Donations</div>
             </div>
             <div class="stat-card">
-                <div class="text-2xl font-bold text-green-600 mb-1"><?php echo $stats['completed']; ?></div>
+                <div class="text-2xl font-bold text-green-600 mb-1"><?php echo $stats['completed'] ?? 0; ?></div>
                 <div class="text-sm text-gray-600">Completed</div>
             </div>
             <div class="stat-card">
-                <div class="text-2xl font-bold text-yellow-600 mb-1"><?php echo $stats['pending']; ?></div>
+                <div class="text-2xl font-bold text-yellow-600 mb-1"><?php echo $stats['pending'] ?? 0; ?></div>
                 <div class="text-sm text-gray-600">Pending</div>
             </div>
             <div class="stat-card">
-                <div class="text-2xl font-bold text-blue-600 mb-1"><?php echo $stats['partial']; ?></div>
+                <div class="text-2xl font-bold text-blue-600 mb-1"><?php echo $stats['partial'] ?? 0; ?></div>
                 <div class="text-sm text-gray-600">Partial</div>
             </div>
             <div class="stat-card">

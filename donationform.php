@@ -199,15 +199,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_donation'])) {
 
     // Validate expiration date is in the future
     $current_date = date('Y-m-d');
-    if (!empty($expDate) && $expDate < $current_date) {
-        $errors[] = "Expiration date must be in the future.";
-        echo "<script>console.log('Validation error: Expiration date is in the past');</script>";
+    $max_exp_date = date('Y-m-d', strtotime('+1 year'));
+    if (!empty($expDate) && $expDate <= $current_date) {
+        $errors[] = "Expiration date must be after today.";
+        echo "<script>console.log('Validation error: Expiration date must be after today');</script>";
+    }
+    if (!empty($expDate) && $expDate > $max_exp_date) {
+        $errors[] = "Expiration date cannot be more than 1 year from now.";
+        echo "<script>console.log('Validation error: Expiration date too far in future');</script>";
     }
 
-    // Validate delivery date is not in the past
+    // Validate delivery date is not in the past (allow up to 30 days from now)
+    $max_delivery_date = date('Y-m-d', strtotime('+30 days'));
     if (!empty($delivery_date) && $delivery_date < $current_date) {
-        $errors[] = "Delivery date must be today or in the future.";
+        $errors[] = "Delivery date cannot be in the past.";
         echo "<script>console.log('Validation error: Delivery date is in the past');</script>";
+    }
+    if (!empty($delivery_date) && $delivery_date > $max_delivery_date) {
+        $errors[] = "Delivery date cannot be more than 30 days from now.";
+        echo "<script>console.log('Validation error: Delivery date too far in future');</script>";
     }
 
     if (!empty($errors)) {
@@ -266,8 +276,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_donation'])) {
                 unset($_SESSION['receiver_distance']);
 
                 echo "<script>console.log('Session variables cleared');</script>";
-                echo "<script>alert('Thank You for your Donation');</script>";
-                echo "<script>window.location.href='index.php';</script>";
+                echo "<script>showSuccessPopup();</script>";
                 exit();
             } else {
                 $error = "Error: " . mysqli_error($conn);
@@ -297,6 +306,7 @@ echo "<script>console.log('PHP script execution completed');</script>";
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -346,6 +356,104 @@ echo "<script>console.log('PHP script execution completed');</script>";
             overflow: hidden;
             position: relative;
             padding: 0;
+        }
+
+        /* Modern Date Input Styling */
+        .donation-form input[type="date"] {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            background-color: white;
+            color: var(--text-dark);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            height: auto;
+            font-family: var(--font-family);
+            cursor: pointer;
+            position: relative;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2391c11b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3e%3c/rect%3e%3cline x1='16' y1='2' x2='16' y2='6'%3e%3c/line%3e%3cline x1='8' y1='2' x2='8' y2='6'%3e%3c/line%3e%3cline x1='3' y1='10' x2='21' y2='10'%3e%3c/line%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 45px;
+        }
+
+        .donation-form input[type="date"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(145, 193, 27, 0.1);
+            background-color: #fafffe;
+        }
+
+        .donation-form input[type="date"]:hover {
+            border-color: var(--accent-color);
+            background-color: #fafffe;
+        }
+
+        /* Hide the default calendar icon on webkit browsers */
+        .donation-form input[type="date"]::-webkit-calendar-picker-indicator {
+            opacity: 0;
+            position: absolute;
+            right: 12px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        /* Style the date input when it has a value */
+        .donation-form input[type="date"]:valid {
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        /* Placeholder styling for empty date inputs */
+        .donation-form input[type="date"]:invalid {
+            color: #aaa;
+        }
+
+        /* Firefox specific styling */
+        @-moz-document url-prefix() {
+            .donation-form input[type="date"] {
+                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2391c11b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3e%3c/rect%3e%3cline x1='16' y1='2' x2='16' y2='6'%3e%3c/line%3e%3cline x1='8' y1='2' x2='8' y2='6'%3e%3c/line%3e%3cline x1='3' y1='10' x2='21' y2='10'%3e%3c/line%3e%3c/svg%3e");
+            }
+        }
+
+        /* Enhanced styling for better visual appeal */
+        .donation-form .input-wrapper:has(input[type="date"]) {
+            position: relative;
+        }
+
+        .donation-form .input-wrapper:has(input[type="date"])::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: var(--border-radius);
+            background: linear-gradient(135deg, transparent 0%, rgba(145, 193, 27, 0.02) 100%);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .donation-form .input-wrapper:has(input[type="date"]:focus)::before {
+            opacity: 1;
+        }
+
+        /* Make sure the input stays above the pseudo-element */
+        .donation-form input[type="date"] {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Additional modern touches */
+        .donation-form input[type="date"]::placeholder {
+            color: #aaa;
+            opacity: 1;
+            font-style: italic;
         }
 
         /* Form heading */
@@ -416,6 +524,7 @@ echo "<script>console.log('PHP script execution completed');</script>";
                 opacity: 0;
                 transform: translateY(-10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -614,7 +723,8 @@ echo "<script>console.log('PHP script execution completed');</script>";
             font-weight: bold;
         }
 
-        input[type="checkbox"]:checked + .input-label, input[type="radio"]:checked + .input-label {
+        input[type="checkbox"]:checked+.input-label,
+        input[type="radio"]:checked+.input-label {
             color: white;
         }
 
@@ -648,6 +758,133 @@ echo "<script>console.log('PHP script execution completed');</script>";
             font-size: 0.85rem;
             display: block;
             margin-top: 5px;
+        }
+
+        /* Success Popup Styling */
+        .success-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .success-popup-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+            animation: popupSlideIn 0.3s ease-out;
+        }
+
+        @keyframes popupSlideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+            color: white;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .success-message {
+            color: var(--text-light);
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .success-button {
+            background: linear-gradient(135deg, var(--accent-color), #7aa116);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .success-button:hover {
+            background: linear-gradient(135deg, #7aa116, var(--accent-color));
+            transform: translateY(-2px);
+        }
+
+        /* Image preview with remove buttons */
+        .image-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .image-container {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(231, 76, 60, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .remove-image:hover {
+            background: rgba(231, 76, 60, 1);
+            transform: scale(1.1);
         }
 
         /* Responsive adjustments */
@@ -697,6 +934,7 @@ echo "<script>console.log('PHP script execution completed');</script>";
         }
 
         @media (max-width: 480px) {
+
             .donation-form .checkbox,
             .donation-form .radio {
                 flex-direction: column;
@@ -707,8 +945,8 @@ echo "<script>console.log('PHP script execution completed');</script>";
 </head>
 
 <body>
-    
-    
+
+
     <section class="donation-form">
         <h3 class="form-heading">Donation Information</h3>
         <div class="back-button">
@@ -720,7 +958,7 @@ echo "<script>console.log('PHP script execution completed');</script>";
             <?php if (!empty($error)): ?>
                 <div class="error-message"><?php echo $error; ?></div>
             <?php endif; ?>
-            
+
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" class="form" method="POST" enctype="multipart/form-data">
                 <div class="doner-receiver">
                     <div class="input-wrapper">
@@ -757,7 +995,7 @@ echo "<script>console.log('PHP script execution completed');</script>";
 
                 <div style="display: flex; gap: 30px; align-items: center; align-self: flex-start; ">
                     <div class="input-wrapper">
-                        <label for="quantity" class="label required-field">Quantity:</label>    
+                        <label for="quantity" class="label required-field">Quantity:</label>
                         <input type="text" class="input" id="quantity" name="quantity" style="margin-top: 10px;" value="<?php echo isset($_POST['quantity']) ? $_POST['quantity'] : ''; ?>" required>
                     </div>
                     <input type="hidden" name="quantity_unit_hidden" id="quantity_unit_hidden" value="<?php echo isset($_POST['quantity_unit_hidden']) ? $_POST['quantity_unit_hidden'] : ''; ?>">
@@ -773,7 +1011,7 @@ echo "<script>console.log('PHP script execution completed');</script>";
 
                         <div class="input-wrapper">
                             <label class="label required-field" for="expDate">Expiration Date:</label>
-                            <input class="input" type="date" id="expDate" name="expDate" value="<?php echo isset($_POST['expDate']) ? $_POST['expDate'] : ''; ?>" min="<?php echo date('Y-m-d'); ?>" required>
+                            <input class="input" type="date" id="expDate" name="expDate" value="<?php echo isset($_POST['expDate']) ? $_POST['expDate'] : ''; ?>" min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>" max="<?php echo date('Y-m-d', strtotime('+1 year')); ?>" required>
                         </div>
 
                         <div class="input-wrapper">
@@ -789,7 +1027,7 @@ echo "<script>console.log('PHP script execution completed');</script>";
 
                     <div class="input-wrapper">
                         <label for="delivary_date" class="label required-field">Date of delivery/donation:</label>
-                        <input class="input" type="date" id="delivary_date" name="delivary_date" value="<?php echo isset($_POST['delivary_date']) ? $_POST['delivary_date'] : ''; ?>" min="<?php echo date('Y-m-d'); ?>" required>
+                        <input class="input" type="date" id="delivary_date" name="delivary_date" value="<?php echo isset($_POST['delivary_date']) ? $_POST['delivary_date'] : ''; ?>" min="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d', strtotime('+30 days')); ?>" required>
                     </div>
 
                     <div class="input-wrapper">
@@ -823,6 +1061,17 @@ echo "<script>console.log('PHP script execution completed');</script>";
             </form>
         </div>
     </section>
+
+    <div id="successPopup" class="success-popup">
+        <div class="success-popup-content">
+            <div class="success-icon">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="success-title">Donation Successful!</h3>
+            <p class="success-message">Thank you for your generous donation. Your contribution will help those in need.</p>
+            <button class="success-button" onclick="redirectToProfile()">Go to Profile</button>
+        </div>
+    </div>
 
     <script>
         // Debug utility function
@@ -898,55 +1147,127 @@ echo "<script>console.log('PHP script execution completed');</script>";
         }
 
         // Function to preview images before upload
+        let selectedFiles = []; // Global array to track selected files
+
         function previewImages(event) {
             debug('Image preview requested');
-            const preview = document.getElementById('image-preview');
-            preview.innerHTML = '';
-
-            const files = event.target.files;
+            const files = Array.from(event.target.files);
             debug('Files selected', files.length);
 
             const maxFiles = 5;
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
             const maxSize = 5 * 1024 * 1024; // 5MB
 
-            // Limit number of files
-            const totalFiles = files.length > maxFiles ? maxFiles : files.length;
+            // Validate and add new files to selectedFiles array
+            files.forEach((file, index) => {
+                debug(`Processing file ${index+1}/${files.length}: ${file.name}, type: ${file.type}, size: ${file.size}`);
 
-            for (let i = 0; i < totalFiles; i++) {
-                const file = files[i];
-                debug(`Processing file ${i+1}/${totalFiles}: ${file.name}, type: ${file.type}, size: ${file.size}`);
+                // Check if we've reached max files
+                if (selectedFiles.length >= maxFiles) {
+                    debug(`Maximum ${maxFiles} files allowed`);
+                    alert(`Maximum ${maxFiles} files allowed`);
+                    return;
+                }
 
                 // Check file type
                 if (!allowedTypes.includes(file.type)) {
                     debug(`Invalid file type: ${file.type} for ${file.name}`);
                     alert('File type not allowed: ' + file.name + '. Only JPG, JPEG, PNG, and GIF are allowed.');
-                    continue;
+                    return;
                 }
 
                 // Check file size
                 if (file.size > maxSize) {
                     debug(`File too large: ${file.size} bytes for ${file.name}`);
                     alert('File too large: ' + file.name + '. Maximum size is 5MB.');
-                    continue;
+                    return;
                 }
 
+                // Add file to selectedFiles array
+                const fileObj = {
+                    file: file,
+                    id: Date.now() + Math.random() // Unique ID
+                };
+                selectedFiles.push(fileObj);
+            });
+
+            // Update the file input with current selected files
+            updateFileInput();
+
+            // Render preview
+            renderImagePreview();
+        }
+
+        function updateFileInput() {
+            const fileInput = document.getElementById('files');
+            const dt = new DataTransfer();
+
+            selectedFiles.forEach(fileObj => {
+                dt.items.add(fileObj.file);
+            });
+
+            fileInput.files = dt.files;
+        }
+
+        function renderImagePreview() {
+            const preview = document.getElementById('image-preview');
+            preview.innerHTML = '';
+
+            selectedFiles.forEach((fileObj, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    debug(`File ${file.name} loaded successfully`);
+                    debug(`File ${fileObj.file.name} loaded successfully`);
+
+                    const container = document.createElement('div');
+                    container.className = 'image-container';
+
                     const img = document.createElement('img');
                     img.src = e.target.result;
-                    img.alt = file.name;
-                    img.title = file.name;
-                    preview.appendChild(img);
+                    img.alt = fileObj.file.name;
+                    img.title = fileObj.file.name;
+                    img.className = 'preview-image';
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.innerHTML = '×';
+                    removeBtn.className = 'remove-image';
+                    removeBtn.type = 'button';
+                    removeBtn.onclick = () => removeImage(fileObj.id);
+
+                    container.appendChild(img);
+                    container.appendChild(removeBtn);
+                    preview.appendChild(container);
+
                     debug('Preview image added to DOM');
                 };
                 reader.onerror = function(e) {
-                    debug(`Error reading file ${file.name}`, e);
+                    debug(`Error reading file ${fileObj.file.name}`, e);
                 };
-                reader.readAsDataURL(file);
-                debug(`Started reading file ${file.name}`);
+                reader.readAsDataURL(fileObj.file);
+            });
+        }
+
+        function removeImage(fileId) {
+            debug('Removing image with ID:', fileId);
+            selectedFiles = selectedFiles.filter(fileObj => fileObj.id !== fileId);
+            updateFileInput();
+            renderImagePreview();
+            debug('Image removed, remaining files:', selectedFiles.length);
+        }
+
+        // Add success popup functions (add new functions)
+        function showSuccessPopup() {
+            debug('Showing success popup');
+            const popup = document.getElementById('successPopup');
+            if (popup) {
+                popup.style.display = 'block';
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
             }
+        }
+
+        function redirectToProfile() {
+            debug('Redirecting to profile page');
+            document.body.style.overflow = 'auto'; // Restore scrolling
+            window.location.href = 'profile.php';
         }
 
         // Form validation (continued)
@@ -978,29 +1299,60 @@ echo "<script>console.log('PHP script execution completed');</script>";
             // Validate expiration date is in the future
             const expDate = new Date(document.getElementById('expDate').value);
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            debug('Validating expiration date:', expDate, 'Today:', today);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+            const maxExpDate = new Date(today);
+            maxExpDate.setFullYear(today.getFullYear() + 1);
 
-            if (expDate < today) {
-                debug('Error: Expiration date is in the past');
-                alert('Expiration date must be in the future');
+            today.setHours(0, 0, 0, 0);
+            tomorrow.setHours(0, 0, 0, 0);
+            expDate.setHours(0, 0, 0, 0);
+            maxExpDate.setHours(0, 0, 0, 0);
+
+            debug('Validating expiration date:', expDate, 'Tomorrow:', tomorrow, 'Max date:', maxExpDate);
+
+            if (expDate <= today) {
+                debug('Error: Expiration date must be after today');
+                alert('Expiration date must be after today');
+                e.preventDefault();
+                hasErrors = true;
+                return;
+            }
+
+            if (expDate > maxExpDate) {
+                debug('Error: Expiration date too far in future');
+                alert('Expiration date cannot be more than 1 year from now');
                 e.preventDefault();
                 hasErrors = true;
                 return;
             }
 
             // Validate delivery date is not in the past
+            // Validate delivery date is today or future, but within 30 days
             const deliveryDate = new Date(document.getElementById('delivary_date').value);
-            debug('Validating delivery date:', deliveryDate);
+            const maxDeliveryDate = new Date(today);
+            maxDeliveryDate.setDate(today.getDate() + 30);
+
+            deliveryDate.setHours(0, 0, 0, 0);
+            maxDeliveryDate.setHours(0, 0, 0, 0);
+
+            debug('Validating delivery date:', deliveryDate, 'Today:', today, 'Max delivery date:', maxDeliveryDate);
 
             if (deliveryDate < today) {
                 debug('Error: Delivery date is in the past');
-                alert('Delivery date must be today or in the future');
+                alert('Delivery date cannot be in the past');
                 e.preventDefault();
                 hasErrors = true;
                 return;
             }
 
+            if (deliveryDate > maxDeliveryDate) {
+                debug('Error: Delivery date too far in future');
+                alert('Delivery date cannot be more than 30 days from now');
+                e.preventDefault();
+                hasErrors = true;
+                return;
+            }
             // Check if damage option is selected
             const damageOptions = document.querySelectorAll('input[name="damage"]:checked');
             debug('Damage selection:', damageOptions.length > 0);
@@ -1062,30 +1414,6 @@ echo "<script>console.log('PHP script execution completed');</script>";
                 }
             }
         });
-
-        function previewImages(event) {
-            const files = event.target.files;
-            const preview = document.getElementById('image-preview');
-            preview.innerHTML = '';
-            
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.style.width = '100px';
-                        img.style.height = '100px';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '8px';
-                        img.style.border = '2px solid #e0e0e0';
-                        preview.appendChild(img);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            }
-        }
 
         // Debug any potential issues with the date inputs
         const expDateInput = document.getElementById('expDate');

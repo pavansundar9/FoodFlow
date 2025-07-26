@@ -23,7 +23,7 @@
             header("Location: signup.php");
         }
         elseif (!preg_match("/^[a-zA-Z-' ]*$/",$name)) {
-            $_SESSION['error_message']="Name: Please use only letters, numbers and spaces";
+            $_SESSION['error_message']="Name: Please use only letters and spaces";
             header("Location: signup.php");
         }
         elseif (!preg_match("/^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/",$email)) {
